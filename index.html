@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Brainrot Values</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #1e1e1e;
+      color: white;
+      overflow-x: hidden;
+    }
+    header {
+      font-size: 22px;
+      color: #ccc;
+      margin: 20px;
+      font-weight: 600;
+    }
+    .glow-bubble {
+      position: fixed;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(255,223,90,0.25), rgba(255,223,90,0) 70%);
+      filter: blur(80px);
+      z-index: 0;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 20px auto;
+      z-index: 1;
+      position: relative;
+    }
+    .controls input {
+      width: 400px;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      background: #2b2b2b;
+      color: #fff;
+      font-size: 16px;
+    }
+    .controls select {
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      background: #2b2b2b;
+      color: #fff;
+      font-size: 16px;
+    }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 20px;
+      padding: 20px;
+      z-index: 1;
+      position: relative;
+    }
+    @media (max-width: 1200px) {
+      #grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .card {
+      background: #262626;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #3a3a3a;
+    }
+    .name { font-weight: 700; margin-top: 8px; font-size: 16px; }
+    .value { color: #6ce08b; font-weight: 700; }
+    .demand { font-size: 14px; padding: 4px 6px; border-radius: 8px; display: inline-block; }
+
+    .demand-low { background: #c5f7c9; color: #1b6b2a; }
+    .demand-average { background: #fff0b8; color: #7a5d00; }
+    .demand-high { background: #ffd0d0; color: #6b0a0a; }
+
+    .rarity-common { color: #9da3a8; }
+    .rarity-rare { color: #4ea3ff; }
+    .rarity-epic { color: #b48cff; }
+    .rarity-legendary { color: #ffd16a; }
+    .rarity-mythic { color: #ff6b6b; }
+    .rarity-god {
+      background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: rainbow 6s linear infinite;
+    }
+    .rarity-secret {
+      background: linear-gradient(90deg, white, black);
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: secretShift 3s linear infinite;
+    }
+    .rarity-og {
+      background: linear-gradient(90deg, black, yellow);
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: ogPulse 3s ease-in-out infinite;
+    }
+    @keyframes rainbow { 50% { filter: hue-rotate(180deg); } 100% { filter: hue-rotate(360deg); } }
+    @keyframes secretShift { 0%,100%{opacity:1;}50%{opacity:0.6;} }
+    @keyframes ogPulse { 0%,100%{transform:scale(1);}50%{transform:scale(1.05);} }
+
+    .admin-btn {
+      position: fixed;
+      right: 20px;
+      top: 20px;
+      z-index: 10;
+    }
+    .btn {
+      background: #2b2b2b;
+      color: #ccc;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal {
+      background: #262626;
+      padding: 20px;
+      border-radius: 12px;
+      width: 400px;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-bubble"></div>
+  <header>Brainrot Values</header>
+  <div class="controls">
+    <input id="search" type="text" placeholder="Search...">
+    <select id="filter">
+      <option value="">Sort/Filter</option>
+      <option value="value-desc">Value: High → Low</option>
+      <option value="value-asc">Value: Low → High</option>
+      <option value="demand-desc">Demand: High → Low</option>
+      <option value="demand-asc">Demand: Low → High</option>
+      <option value="rarity-desc">Rarity: High → Low</option>
+      <option value="rarity-asc">Rarity: Low → High</option>
+    </select>
+  </div>
+  <div id="grid"></div>
+  <div class="admin-btn"><button id="adminBtn" class="btn">Admin</button></div>
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal"><div id="modalContent"></div></div>
+  </div>
+  <script>
+    const STORAGE_KEY = 'brainrot_values_v2';
+    const ADMIN_PW = 'admindev123';
+
+    const rarityOrder = { 'Common':1,'Rare':2,'Epic':3,'Legendary':4,'Mythic':5,'OG':6,'Secret':7,'God':8 };
+    const demandOrder = { 'Low':1,'Average':2,'High':3 };
+
+    function parseValue(v){
+      if(!v) return 0;
+      const m = v.match(/([0-9.]+)\s*([KMBT])?/i);
+      if(!m) return parseFloat(v)||0;
+      let num = parseFloat(m[1]);
+      const map = {K:1e3,M:1e6,B:1e9,T:1e12};
+      if(m[2]) num *= map[m[2].toUpperCase()]||1;
+      return num;
+    }
+
+    function load(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY))||[] }catch(e){ return [] } }
+    function save(data){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) }
+
+    let brainrots = load();
+
+    function render(){
+      const search = document.getElementById('search').value.toLowerCase();
+      const filter = document.getElementById('filter').value;
+      let list = brainrots.filter(b => b.name.toLowerCase().includes(search));
+      list.sort((a,b)=>{
+        switch(filter){
+          case 'value-desc': return parseValue(b.value)-parseValue(a.value);
+          case 'value-asc': return parseValue(a.value)-parseValue(b.value);
+          case 'demand-desc': return demandOrder[b.demand]-demandOrder[a.demand];
+          case 'demand-asc': return demandOrder[a.demand]-demandOrder[b.demand];
+          case 'rarity-desc': return rarityOrder[b.rarity]-rarityOrder[a.rarity];
+          case 'rarity-asc': return rarityOrder[a.rarity]-rarityOrder[b.rarity];
+          default: return 0;
+        }
+      });
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      if(list.length===0){ grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#888;">No brainrots yet.</div>'; return; }
+      list.forEach((b,i)=>{
+        const card = document.createElement('div'); card.className='card';
+        const rarityClass = 'rarity-'+b.rarity.toLowerCase();
+        card.innerHTML = `<img src="images/${b.image}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+          <div class="name ${rarityClass}">${b.name}</div>
+          <div class="value">${b.value}</div>
+          <div class="demand demand-${b.demand.toLowerCase()}">${b.demand}</div>`;
+        if(localStorage.getItem('admin_unlocked')==='1'){
+          const del = document.createElement('button'); del.textContent='Delete'; del.className='btn'; del.style.marginTop='8px';
+          del.onclick=()=>{ brainrots.splice(i,1); save(brainrots); render(); };
+          card.appendChild(del);
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    document.getElementById('search').addEventListener('input', render);
+    document.getElementById('filter').addEventListener('change', render);
+
+    const adminBtn=document.getElementById('adminBtn');
+    const backdrop=document.getElementById('modalBackdrop');
+    const modalContent=document.getElementById('modalContent');
+
+    function showModal(html){ backdrop.style.display='flex'; modalContent.innerHTML=html; }
+    function closeModal(){ backdrop.style.display='none'; }
+    backdrop.onclick=(e)=>{ if(e.target===backdrop) closeModal(); };
+
+    adminBtn.onclick=()=>{
+      if(localStorage.getItem('admin_unlocked')==='1'){ showAddModal(); return; }
+      showModal(`<h3>Admin Login</h3><input id='pw' type='password' placeholder='Password'><br><br><button id='login' class='btn'>Login</button>`);
+      document.getElementById('login').onclick=()=>{
+        const pw=document.getElementById('pw').value;
+        if(pw===ADMIN_PW){ localStorage.setItem('admin_unlocked','1'); closeModal(); showAddModal(); }
+        else alert('Wrong password');
+      };
+    };
+
+    function showAddModal(){
+      showModal(`<h3>Add Brainrot</h3>
+        <input id='name' placeholder='Name'><br>
+        <input id='image' placeholder='Image filename'><br>
+        <input id='value' placeholder='Value (e.g. 100M)'><br>
+        <select id='demand'><option>Low</option><option>Average</option><option>High</option></select><br>
+        <select id='rarity'><option>Common</option><option>Rare</option><option>Epic</option><option>Legendary</option><option>Mythic</option><option>OG</option><option>Secret</option><option>God</option></select><br>
+        <button id='add' class='btn'>Add</button>`);
+      document.getElementById('add').onclick=()=>{
+        const b={
+          name:document.getElementById('name').value.trim(),
+          image:document.getElementById('image').value.trim(),
+          value:document.getElementById('value').value.trim(),
+          demand:document.getElementById('demand').value,
+          rarity:document.getElementById('rarity').value
+        };
+        if(!b.name) return alert('Name required');
+        brainrots.push(b); save(brainrots); closeModal(); render();
+      };
+    }
+
+    render();
+  </script>
+</body>
+</html>
