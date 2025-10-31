@@ -485,51 +485,7 @@
         </div>
     </div>
 
-    <script type="module">
-  // --- 1️⃣ FIREBASE SETUP ---
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCkynWoOIhS3Vlh7RmY1kStGrz0h3TOg_g",
-    authDomain: "brainrot-values.firebaseapp.com",
-    databaseURL: "https://brainrot-values-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "brainrot-values",
-    storageBucket: "brainrot-values.firebasestorage.app",
-    messagingSenderId: "395140547817",
-    appId: "1:395140547817:web:a9f16c95f25c16d30c9c78",
-    measurementId: "G-PQHZ38E1QN"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const database = getDatabase(app); // ✅ This makes 'database' available for your code
-
-  // --- 2️⃣ YOUR EXISTING CODE GOES HERE ---
-  // (everything that was originally in your <script> tag)
-
-  // Example:
-  function saveBrainrot(brainrot) {
-    console.log("Saving:", brainrot);
-    const safeKey = brainrot.name.toLowerCase().replace(/\s+/g, '-');
-    const brainrotRef = ref(database, 'brainrots/' + safeKey);
-    set(brainrotRef, brainrot)
-      .then(() => console.log("Saved successfully"))
-      .catch(err => console.error("Error:", err));
-  }
-
-  function loadBrainrots() {
-    console.log("Loading brainrots...");
-    const brainrotsRef = ref(database, 'brainrots');
-    onValue(brainrotsRef, (snapshot) => {
-      const data = snapshot.val();
-      console.log("Data:", data);
-    });
-  }
-
-  // Call your functions
-  loadBrainrots();
+    <script>
         let brainrots = [];
         let currentSort = 'name';
         let isAdmin = false;
