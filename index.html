@@ -509,7 +509,8 @@
 
         async function loadBrainrots() {
             try {
-                const keys = await window.storage.list('brainrot:', true);
+                const keys = await window.storage.list('brainrot-', true);
+                console.log('Loaded keys:', keys);
                 if (keys && keys.keys) {
                     brainrots = [];
                     for (const key of keys.keys) {
@@ -524,27 +525,30 @@
                     }
                 }
             } catch (error) {
-                console.log('No brainrots found yet');
+                console.log('No brainrots found yet:', error);
                 brainrots = [];
             }
             renderBrainrots();
         }
 
         async function saveBrainrot(brainrot) {
-            const key = `brainrot:${brainrot.name.replace(/\s/g, '_')}`;
+            // Create a safe key without special characters
+            const safeKey = `brainrot-${brainrot.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
             try {
-                await window.storage.set(key, JSON.stringify(brainrot), true);
-                return true;
+                const result = await window.storage.set(safeKey, JSON.stringify(brainrot), true);
+                console.log('Save result:', result);
+                return result !== null;
             } catch (error) {
                 console.error('Error saving brainrot:', error);
+                alert('Storage error: ' + error.message);
                 return false;
             }
         }
 
         async function deleteBrainrot(name) {
-            const key = `brainrot:${name.replace(/\s/g, '_')}`;
+            const safeKey = `brainrot-${name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
             try {
-                await window.storage.delete(key, true);
+                await window.storage.delete(safeKey, true);
                 return true;
             } catch (error) {
                 console.error('Error deleting brainrot:', error);
