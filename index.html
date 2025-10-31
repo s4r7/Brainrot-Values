@@ -507,48 +507,56 @@
             'High': 3
         };
 
-        async function loadBrainrots() {
-            try {
-                const keys = await window.storage.list('brainrot-', true);
-                console.log('Loaded keys:', keys);
-                if (keys && keys.keys) {
-                    brainrots = [];
-                    for (const key of keys.keys) {
-                        try {
-                            const result = await window.storage.get(key, true);
-                            if (result && result.value) {
-                                brainrots.push(JSON.parse(result.value));
-                            }
-                        } catch (e) {
-                            console.log('Skipping key:', key);
-                        }
+        // Wait for Firebase to be ready
+        function waitForFirebase() {
+            return new Promise((resolve) => {
+                const checkFirebase = setInterval(() => {
+                    if (window.firebaseDB) {
+                        clearInterval(checkFirebase);
+                        resolve();
                     }
-                }
-            } catch (error) {
-                console.log('No brainrots found yet:', error);
+                }, 100);
+            });
+        }
+
+        async function loadBrainrots() {
+            await waitForFirebase();
+            const brainrotsRef = window.firebaseRef(window.firebaseDB, 'brainrots');
+            
+            window.firebaseOnValue(brainrotsRef, (snapshot) => {
                 brainrots = [];
-            }
-            renderBrainrots();
+                const data = snapshot.val();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        brainrots.push(data[key]);
+                    });
+                }
+                renderBrainrots();
+            });
         }
 
         async function saveBrainrot(brainrot) {
-            // Create a safe key without special characters
-            const safeKey = `brainrot-${brainrot.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
+            await waitForFirebase();
+            const safeKey = brainrot.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+            const brainrotRef = window.firebaseRef(window.firebaseDB, `brainrots/${safeKey}`);
+            
             try {
-                const result = await window.storage.set(safeKey, JSON.stringify(brainrot), true);
-                console.log('Save result:', result);
-                return result !== null;
+                await window.firebaseSet(brainrotRef, brainrot);
+                return true;
             } catch (error) {
                 console.error('Error saving brainrot:', error);
-                alert('Storage error: ' + error.message);
+                alert('Error saving brainrot: ' + error.message);
                 return false;
             }
         }
 
         async function deleteBrainrot(name) {
-            const safeKey = `brainrot-${name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
+            await waitForFirebase();
+            const safeKey = name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+            const brainrotRef = window.firebaseRef(window.firebaseDB, `brainrots/${safeKey}`);
+            
             try {
-                await window.storage.delete(safeKey, true);
+                await window.firebaseRemove(brainrotRef);
                 return true;
             } catch (error) {
                 console.error('Error deleting brainrot:', error);
@@ -667,12 +675,9 @@
             const success = await saveBrainrot(newBrainrot);
             
             if (success) {
-                await loadBrainrots();
                 updateDeleteDropdown();
                 clearForm();
                 alert('Brainrot added successfully!');
-            } else {
-                alert('Error saving brainrot. Please try again.');
             }
         });
 
@@ -693,7 +698,6 @@
             if (confirm(`Are you sure you want to delete "${brainrotToDelete.name}"?`)) {
                 const success = await deleteBrainrot(brainrotToDelete.name);
                 if (success) {
-                    await loadBrainrots();
                     updateDeleteDropdown();
                     alert('Brainrot deleted successfully!');
                 } else {
@@ -713,5 +717,7 @@
         renderBrainrots();
         loadBrainrots();
     </script>
+</body>
+</html>
 </body>
 </html>
