@@ -485,7 +485,7 @@
         </div>
     </div>
 
-<script type="module">
+    <script type="module">
   // --- 1️⃣ FIREBASE SETUP ---
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
   import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
@@ -530,7 +530,241 @@
 
   // Call your functions
   loadBrainrots();
-</script>
+        let brainrots = [];
+        let currentSort = 'name';
+        let isAdmin = false;
+
+        const rarityOrder = {
+            'Common': 1,
+            'Rare': 2,
+            'Epic': 3,
+            'Legendary': 4,
+            'Mythic': 5,
+            'God': 6,
+            'Secret': 7,
+            'OG': 8
+        };
+
+        const demandOrder = {
+            'Low': 1,
+            'Average': 2,
+            'High': 3
+        };
+
+        function loadBrainrots() {
+            console.log('Loading brainrots from Firebase...');
+            const brainrotsRef = database.ref('brainrots');
+            
+            brainrotsRef.on('value', (snapshot) => {
+                brainrots = [];
+                const data = snapshot.val();
+                console.log('Firebase data received:', data);
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        brainrots.push(data[key]);
+                    });
+                }
+                console.log('Brainrots array:', brainrots);
+                renderBrainrots();
+            });
+        }
+
+        async function saveBrainrot(brainrot) {
+            console.log('saveBrainrot called with:', brainrot);
+            
+            const safeKey = brainrot.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+            console.log('Safe key:', safeKey);
+            
+            try {
+                await database.ref(`brainrots/${safeKey}`).set(brainrot);
+                console.log('Firebase set completed successfully');
+                return true;
+            } catch (error) {
+                console.error('Error saving brainrot:', error);
+                alert('Error saving brainrot: ' + error.message);
+                return false;
+            }
+        }
+
+        async function deleteBrainrot(name) {
+            const safeKey = name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+            
+            try {
+                await database.ref(`brainrots/${safeKey}`).remove();
+                console.log('Brainrot deleted successfully');
+                return true;
+            } catch (error) {
+                console.error('Error deleting brainrot:', error);
+                return false;
+            }
+        }
+
+        function parseValue(value) {
+            const num = parseFloat(value);
+            if (value.includes('M')) return num * 1000000;
+            if (value.includes('K')) return num * 1000;
+            if (value.includes('B')) return num * 1000000000;
+            return num;
+        }
+
+        function renderBrainrots() {
+            const grid = document.getElementById('brainrotGrid');
+            const searchTerm = document.getElementById('searchBar').value.toLowerCase();
+            
+            let filtered = brainrots.filter(b => b.name.toLowerCase().includes(searchTerm));
+            
+            filtered.sort((a, b) => {
+                if (currentSort === 'name') {
+                    return a.name.localeCompare(b.name);
+                } else if (currentSort === 'value') {
+                    return parseValue(b.value) - parseValue(a.value);
+                } else if (currentSort === 'demand') {
+                    return demandOrder[b.demand] - demandOrder[a.demand];
+                } else if (currentSort === 'rarity') {
+                    return rarityOrder[b.rarity] - rarityOrder[a.rarity];
+                }
+                return 0;
+            });
+
+            grid.innerHTML = filtered.map(brainrot => `
+                <div class="brainrot-card">
+                    <div class="brainrot-image">
+                        <img src="images/${brainrot.image}" alt="${brainrot.name}" onerror="this.style.display='none'">
+                    </div>
+                    <div class="brainrot-name rarity-${brainrot.rarity.toLowerCase()}">${brainrot.name}</div>
+                    <div class="brainrot-info">Value: <span class="value-text">${brainrot.value}</span></div>
+                    <div class="brainrot-info">Demand: <span class="demand-${brainrot.demand.toLowerCase()}">${brainrot.demand}</span></div>
+                    <div class="brainrot-info">Rarity: <span class="rarity-${brainrot.rarity.toLowerCase()}">${brainrot.rarity}</span></div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('searchBar').addEventListener('input', renderBrainrots);
+
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            document.getElementById('filterDropdown').classList.toggle('show');
+        });
+
+        document.querySelectorAll('.filter-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                currentSort = e.target.dataset.sort;
+                document.getElementById('filterDropdown').classList.remove('show');
+                renderBrainrots();
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-container')) {
+                document.getElementById('filterDropdown').classList.remove('show');
+            }
+        });
+
+        document.getElementById('adminBtn').addEventListener('click', () => {
+            if (!isAdmin) {
+                document.getElementById('passwordModal').classList.add('show');
+            } else {
+                openAdminPanel();
+            }
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const password = document.getElementById('passwordInput').value;
+            if (password === 'admindev123') {
+                isAdmin = true;
+                document.getElementById('passwordModal').classList.remove('show');
+                document.getElementById('passwordInput').value = '';
+                openAdminPanel();
+            } else {
+                alert('Incorrect password!');
+            }
+        });
+
+        document.getElementById('cancelLoginBtn').addEventListener('click', () => {
+            document.getElementById('passwordModal').classList.remove('show');
+            document.getElementById('passwordInput').value = '';
+        });
+
+        function openAdminPanel() {
+            updateDeleteDropdown();
+            document.getElementById('adminModal').classList.add('show');
+        }
+
+        document.getElementById('closeAdminBtn').addEventListener('click', () => {
+            document.getElementById('adminModal').classList.remove('show');
+            clearForm();
+        });
+
+        document.getElementById('saveBrainrotBtn').addEventListener('click', async () => {
+            console.log('Save button clicked');
+            const name = document.getElementById('brainrotName').value;
+            const image = document.getElementById('brainrotImage').value;
+            const value = document.getElementById('brainrotValue').value;
+            const demand = document.getElementById('brainrotDemand').value;
+            const rarity = document.getElementById('brainrotRarity').value;
+
+            console.log('Form values:', { name, image, value, demand, rarity });
+
+            if (!name || !image || !value) {
+                alert('Please fill out all required fields!');
+                return;
+            }
+
+            console.log('Attempting to save brainrot...');
+            const newBrainrot = { name, image, value, demand, rarity };
+            
+            try {
+                const success = await saveBrainrot(newBrainrot);
+                console.log('Save success:', success);
+                
+                if (success) {
+                    updateDeleteDropdown();
+                    clearForm();
+                    alert('Brainrot added successfully!');
+                } else {
+                    alert('Error saving brainrot. Check console for details.');
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('Error: ' + error.message);
+            }
+        });
+
+        function updateDeleteDropdown() {
+            const select = document.getElementById('deleteBrainrotSelect');
+            select.innerHTML = '<option value="">Select a brainrot to delete...</option>' +
+                brainrots.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
+        }
+
+        document.getElementById('deleteBrainrotBtn').addEventListener('click', async () => {
+            const index = document.getElementById('deleteBrainrotSelect').value;
+            if (index === '') {
+                alert('Please select a brainrot to delete!');
+                return;
+            }
+
+            const brainrotToDelete = brainrots[index];
+            if (confirm(`Are you sure you want to delete "${brainrotToDelete.name}"?`)) {
+                const success = await deleteBrainrot(brainrotToDelete.name);
+                if (success) {
+                    updateDeleteDropdown();
+                    alert('Brainrot deleted successfully!');
+                } else {
+                    alert('Error deleting brainrot. Please try again.');
+                }
+            }
+        });
+
+        function clearForm() {
+            document.getElementById('brainrotName').value = '';
+            document.getElementById('brainrotImage').value = '';
+            document.getElementById('brainrotValue').value = '';
+            document.getElementById('brainrotDemand').value = 'Low';
+            document.getElementById('brainrotRarity').value = 'Common';
+        }
+
+        renderBrainrots();
+        loadBrainrots();
+    </script>
 </body>
 </html>
 </body>
