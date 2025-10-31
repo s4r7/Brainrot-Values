@@ -507,57 +507,33 @@
             'High': 3
         };
 
-        // Wait for Firebase to be ready
-        function waitForFirebase() {
-            return new Promise((resolve) => {
-                const checkFirebase = setInterval(() => {
-                    console.log('Checking Firebase...', !!window.firebaseDB);
-                    if (window.firebaseDB) {
-                        clearInterval(checkFirebase);
-                        console.log('Firebase is ready!');
-                        resolve();
-                    }
-                }, 100);
-                
-                // Timeout after 10 seconds
-                setTimeout(() => {
-                    clearInterval(checkFirebase);
-                    console.error('Firebase timeout - not loaded after 10 seconds');
-                    resolve(); // Resolve anyway to see the actual error
-                }, 10000);
-            });
-        }
-
-        async function loadBrainrots() {
-            await waitForFirebase();
-            const brainrotsRef = window.firebaseRef(window.firebaseDB, 'brainrots');
+        function loadBrainrots() {
+            console.log('Loading brainrots from Firebase...');
+            const brainrotsRef = database.ref('brainrots');
             
-            window.firebaseOnValue(brainrotsRef, (snapshot) => {
+            brainrotsRef.on('value', (snapshot) => {
                 brainrots = [];
                 const data = snapshot.val();
+                console.log('Firebase data received:', data);
                 if (data) {
                     Object.keys(data).forEach(key => {
                         brainrots.push(data[key]);
                     });
                 }
+                console.log('Brainrots array:', brainrots);
                 renderBrainrots();
             });
         }
 
         async function saveBrainrot(brainrot) {
             console.log('saveBrainrot called with:', brainrot);
-            await waitForFirebase();
-            console.log('Firebase ready');
             
             const safeKey = brainrot.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
             console.log('Safe key:', safeKey);
             
-            const brainrotRef = window.firebaseRef(window.firebaseDB, `brainrots/${safeKey}`);
-            console.log('Firebase ref created');
-            
             try {
-                await window.firebaseSet(brainrotRef, brainrot);
-                console.log('Firebase set completed');
+                await database.ref(`brainrots/${safeKey}`).set(brainrot);
+                console.log('Firebase set completed successfully');
                 return true;
             } catch (error) {
                 console.error('Error saving brainrot:', error);
@@ -567,12 +543,11 @@
         }
 
         async function deleteBrainrot(name) {
-            await waitForFirebase();
             const safeKey = name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-            const brainrotRef = window.firebaseRef(window.firebaseDB, `brainrots/${safeKey}`);
             
             try {
-                await window.firebaseRemove(brainrotRef);
+                await database.ref(`brainrots/${safeKey}`).remove();
+                console.log('Brainrot deleted successfully');
                 return true;
             } catch (error) {
                 console.error('Error deleting brainrot:', error);
