@@ -511,11 +511,20 @@
         function waitForFirebase() {
             return new Promise((resolve) => {
                 const checkFirebase = setInterval(() => {
+                    console.log('Checking Firebase...', !!window.firebaseDB);
                     if (window.firebaseDB) {
                         clearInterval(checkFirebase);
+                        console.log('Firebase is ready!');
                         resolve();
                     }
                 }, 100);
+                
+                // Timeout after 10 seconds
+                setTimeout(() => {
+                    clearInterval(checkFirebase);
+                    console.error('Firebase timeout - not loaded after 10 seconds');
+                    resolve(); // Resolve anyway to see the actual error
+                }, 10000);
             });
         }
 
