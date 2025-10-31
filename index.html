@@ -45,16 +45,24 @@
             gap: 15px;
             margin-bottom: 30px;
             align-items: center;
+            justify-content: center;
         }
 
         #searchBar {
-            flex: 1;
+            width: 400px;
             padding: 15px;
             font-size: 16px;
             border: 2px solid #444;
-            background-color: #3a3a3a;
+            background: linear-gradient(90deg, #3a3a3a, #4a4a4a, #3a3a3a);
+            background-size: 200% 100%;
             color: #fff;
-            border-radius: 5px;
+            border-radius: 8px;
+            animation: searchGradient 3s ease infinite;
+        }
+
+        @keyframes searchGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .filter-container {
@@ -62,45 +70,64 @@
         }
 
         #filterBtn {
-            padding: 15px 30px;
+            padding: 15px;
             font-size: 16px;
-            background-color: #3a3a3a;
+            background: linear-gradient(135deg, #3a3a3a, #4a4a4a);
             color: #fff;
-            border: 2px solid #444;
-            border-radius: 5px;
+            border: 2px solid #555;
+            border-radius: 8px;
             cursor: pointer;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
         }
 
         #filterBtn:hover {
-            background-color: #4a4a4a;
+            background: linear-gradient(135deg, #4a4a4a, #5a5a5a);
+            transform: scale(1.05);
+        }
+
+        #filterBtn::before {
+            content: '▼';
+            font-size: 18px;
         }
 
         .filter-dropdown {
-            display: none;
             position: absolute;
             top: 100%;
             right: 0;
             margin-top: 5px;
             background-color: #3a3a3a;
-            border: 2px solid #444;
-            border-radius: 5px;
+            border: 2px solid #555;
+            border-radius: 8px;
             padding: 10px;
             z-index: 100;
             min-width: 200px;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
         .filter-dropdown.show {
-            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
         }
 
         .filter-option {
             padding: 10px;
             cursor: pointer;
-            border-radius: 3px;
+            border-radius: 5px;
+            transition: all 0.2s ease;
         }
 
         .filter-option:hover {
             background-color: #4a4a4a;
+            transform: translateX(5px);
         }
 
         .admin-btn {
@@ -122,9 +149,9 @@
 
         .brainrot-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
-            width: fit-content;
+            width: 100%;
         }
 
         .brainrot-card {
@@ -132,7 +159,6 @@
             border: 2px solid #444;
             border-radius: 8px;
             padding: 15px;
-            width: 200px;
         }
 
         .brainrot-image {
@@ -238,7 +264,7 @@
         }
 
         .modal {
-            display: none;
+            display: flex;
             position: fixed;
             top: 0;
             left: 0;
@@ -248,10 +274,29 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
 
         .modal.show {
-            display: flex;
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal.show .modal-content {
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .modal-content {
@@ -261,6 +306,7 @@
             width: 500px;
             max-height: 90vh;
             overflow-y: auto;
+            border: 2px solid #555;
         }
 
         .modal-content h2 {
@@ -358,7 +404,7 @@
     <div class="controls">
         <input type="text" id="searchBar" placeholder="Search...">
         <div class="filter-container">
-            <button id="filterBtn">filter</button>
+            <button id="filterBtn"></button>
             <div id="filterDropdown" class="filter-dropdown">
                 <div class="filter-option" data-sort="name">Sort by Name</div>
                 <div class="filter-option" data-sort="value">Sort by Value</div>
