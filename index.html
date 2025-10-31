@@ -536,12 +536,19 @@
         }
 
         async function saveBrainrot(brainrot) {
+            console.log('saveBrainrot called with:', brainrot);
             await waitForFirebase();
+            console.log('Firebase ready');
+            
             const safeKey = brainrot.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+            console.log('Safe key:', safeKey);
+            
             const brainrotRef = window.firebaseRef(window.firebaseDB, `brainrots/${safeKey}`);
+            console.log('Firebase ref created');
             
             try {
                 await window.firebaseSet(brainrotRef, brainrot);
+                console.log('Firebase set completed');
                 return true;
             } catch (error) {
                 console.error('Error saving brainrot:', error);
@@ -660,24 +667,37 @@
         });
 
         document.getElementById('saveBrainrotBtn').addEventListener('click', async () => {
+            console.log('Save button clicked');
             const name = document.getElementById('brainrotName').value;
             const image = document.getElementById('brainrotImage').value;
             const value = document.getElementById('brainrotValue').value;
             const demand = document.getElementById('brainrotDemand').value;
             const rarity = document.getElementById('brainrotRarity').value;
 
+            console.log('Form values:', { name, image, value, demand, rarity });
+
             if (!name || !image || !value) {
                 alert('Please fill out all required fields!');
                 return;
             }
 
+            console.log('Attempting to save brainrot...');
             const newBrainrot = { name, image, value, demand, rarity };
-            const success = await saveBrainrot(newBrainrot);
             
-            if (success) {
-                updateDeleteDropdown();
-                clearForm();
-                alert('Brainrot added successfully!');
+            try {
+                const success = await saveBrainrot(newBrainrot);
+                console.log('Save success:', success);
+                
+                if (success) {
+                    updateDeleteDropdown();
+                    clearForm();
+                    alert('Brainrot added successfully!');
+                } else {
+                    alert('Error saving brainrot. Check console for details.');
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('Error: ' + error.message);
             }
         });
 
