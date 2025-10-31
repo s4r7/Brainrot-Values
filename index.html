@@ -134,17 +134,18 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 10px 20px;
-            background-color: rgba(85, 85, 85, 0.4);
-            color: #fff;
+            padding: 8px;
+            background-color: transparent;
+            color: #666;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 20px;
+            transition: color 0.3s ease;
         }
 
         .admin-btn:hover {
-            background-color: rgba(102, 102, 102, 0.4);
+            color: #999;
         }
 
         .brainrot-grid {
@@ -416,7 +417,7 @@
 
     <div class="brainrot-grid" id="brainrotGrid"></div>
 
-    <button class="admin-btn" id="adminBtn">admin</button>
+    <button class="admin-btn" id="adminBtn">⚙</button>
 
     <div class="modal" id="passwordModal">
         <div class="modal-content">
@@ -485,7 +486,7 @@
     </div>
 
     <script>
-        let brainrots = JSON.parse(localStorage.getItem('brainrots')) || [];
+        let brainrots = [];
         let currentSort = 'name';
         let isAdmin = false;
 
@@ -505,6 +506,51 @@
             'Average': 2,
             'High': 3
         };
+
+        async function loadBrainrots() {
+            try {
+                const keys = await window.storage.list('brainrot:', true);
+                if (keys && keys.keys) {
+                    brainrots = [];
+                    for (const key of keys.keys) {
+                        try {
+                            const result = await window.storage.get(key, true);
+                            if (result && result.value) {
+                                brainrots.push(JSON.parse(result.value));
+                            }
+                        } catch (e) {
+                            console.log('Skipping key:', key);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('No brainrots found yet');
+                brainrots = [];
+            }
+            renderBrainrots();
+        }
+
+        async function saveBrainrot(brainrot) {
+            const key = `brainrot:${brainrot.name.replace(/\s/g, '_')}`;
+            try {
+                await window.storage.set(key, JSON.stringify(brainrot), true);
+                return true;
+            } catch (error) {
+                console.error('Error saving brainrot:', error);
+                return false;
+            }
+        }
+
+        async function deleteBrainrot(name) {
+            const key = `brainrot:${name.replace(/\s/g, '_')}`;
+            try {
+                await window.storage.delete(key, true);
+                return true;
+            } catch (error) {
+                console.error('Error deleting brainrot:', error);
+                return false;
+            }
+        }
 
         function parseValue(value) {
             const num = parseFloat(value);
@@ -601,7 +647,7 @@
             clearForm();
         });
 
-        document.getElementById('saveBrainrotBtn').addEventListener('click', () => {
+        document.getElementById('saveBrainrotBtn').addEventListener('click', async () => {
             const name = document.getElementById('brainrotName').value;
             const image = document.getElementById('brainrotImage').value;
             const value = document.getElementById('brainrotValue').value;
@@ -613,12 +659,17 @@
                 return;
             }
 
-            brainrots.push({ name, image, value, demand, rarity });
-            localStorage.setItem('brainrots', JSON.stringify(brainrots));
-            renderBrainrots();
-            updateDeleteDropdown();
-            clearForm();
-            alert('Brainrot added successfully!');
+            const newBrainrot = { name, image, value, demand, rarity };
+            const success = await saveBrainrot(newBrainrot);
+            
+            if (success) {
+                await loadBrainrots();
+                updateDeleteDropdown();
+                clearForm();
+                alert('Brainrot added successfully!');
+            } else {
+                alert('Error saving brainrot. Please try again.');
+            }
         });
 
         function updateDeleteDropdown() {
@@ -627,19 +678,23 @@
                 brainrots.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
         }
 
-        document.getElementById('deleteBrainrotBtn').addEventListener('click', () => {
+        document.getElementById('deleteBrainrotBtn').addEventListener('click', async () => {
             const index = document.getElementById('deleteBrainrotSelect').value;
             if (index === '') {
                 alert('Please select a brainrot to delete!');
                 return;
             }
 
-            if (confirm(`Are you sure you want to delete "${brainrots[index].name}"?`)) {
-                brainrots.splice(index, 1);
-                localStorage.setItem('brainrots', JSON.stringify(brainrots));
-                renderBrainrots();
-                updateDeleteDropdown();
-                alert('Brainrot deleted successfully!');
+            const brainrotToDelete = brainrots[index];
+            if (confirm(`Are you sure you want to delete "${brainrotToDelete.name}"?`)) {
+                const success = await deleteBrainrot(brainrotToDelete.name);
+                if (success) {
+                    await loadBrainrots();
+                    updateDeleteDropdown();
+                    alert('Brainrot deleted successfully!');
+                } else {
+                    alert('Error deleting brainrot. Please try again.');
+                }
             }
         });
 
@@ -652,6 +707,7 @@
         }
 
         renderBrainrots();
+        loadBrainrots();
     </script>
 </body>
 </html>
