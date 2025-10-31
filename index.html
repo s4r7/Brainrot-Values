@@ -1,271 +1,609 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Brainrot Values</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: #1e1e1e;
-      color: white;
-      overflow-x: hidden;
-    }
-    header {
-      font-size: 22px;
-      color: #ccc;
-      margin: 20px;
-      font-weight: 600;
-    }
-    .glow-bubble {
-      position: fixed;
-      top: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 800px;
-      height: 800px;
-      background: radial-gradient(circle, rgba(255,223,90,0.25), rgba(255,223,90,0) 70%);
-      filter: blur(80px);
-      z-index: 0;
-    }
-    .controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin: 20px auto;
-      z-index: 1;
-      position: relative;
-    }
-    .controls input {
-      width: 400px;
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-      background: #2b2b2b;
-      color: #fff;
-      font-size: 16px;
-    }
-    .controls select {
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      background: #2b2b2b;
-      color: #fff;
-      font-size: 16px;
-    }
-    #grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 20px;
-      padding: 20px;
-      z-index: 1;
-      position: relative;
-    }
-    @media (max-width: 1200px) {
-      #grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    .card {
-      background: #262626;
-      border-radius: 12px;
-      padding: 12px;
-      text-align: center;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-    .card img {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 8px;
-      background: #3a3a3a;
-    }
-    .name { font-weight: 700; margin-top: 8px; font-size: 16px; }
-    .value { color: #6ce08b; font-weight: 700; }
-    .demand { font-size: 14px; padding: 4px 6px; border-radius: 8px; display: inline-block; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainrot Values</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .demand-low { background: #c5f7c9; color: #1b6b2a; }
-    .demand-average { background: #fff0b8; color: #7a5d00; }
-    .demand-high { background: #ffd0d0; color: #6b0a0a; }
+        body {
+            background-color: #2a2a2a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-    .rarity-common { color: #9da3a8; }
-    .rarity-rare { color: #4ea3ff; }
-    .rarity-epic { color: #b48cff; }
-    .rarity-legendary { color: #ffd16a; }
-    .rarity-mythic { color: #ff6b6b; }
-    .rarity-god {
-      background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
-      -webkit-background-clip: text;
-      color: transparent;
-      animation: rainbow 6s linear infinite;
-    }
-    .rarity-secret {
-      background: linear-gradient(90deg, white, black);
-      -webkit-background-clip: text;
-      color: transparent;
-      animation: secretShift 3s linear infinite;
-    }
-    .rarity-og {
-      background: linear-gradient(90deg, black, yellow);
-      -webkit-background-clip: text;
-      color: transparent;
-      animation: ogPulse 3s ease-in-out infinite;
-    }
-    @keyframes rainbow { 50% { filter: hue-rotate(180deg); } 100% { filter: hue-rotate(360deg); } }
-    @keyframes secretShift { 0%,100%{opacity:1;}50%{opacity:0.6;} }
-    @keyframes ogPulse { 0%,100%{transform:scale(1);}50%{transform:scale(1.05);} }
+        .background-bubble {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 255, 0, 0.3), transparent);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            filter: blur(100px);
+        }
 
-    .admin-btn {
-      position: fixed;
-      right: 20px;
-      top: 20px;
-      z-index: 10;
-    }
-    .btn {
-      background: #2b2b2b;
-      color: #ccc;
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 8px 12px;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal {
-      background: #262626;
-      padding: 20px;
-      border-radius: 12px;
-      width: 400px;
-    }
-  </style>
+        h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        #searchBar {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #444;
+            background-color: #3a3a3a;
+            color: #fff;
+            border-radius: 5px;
+        }
+
+        .filter-container {
+            position: relative;
+        }
+
+        #filterBtn {
+            padding: 15px 30px;
+            font-size: 16px;
+            background-color: #3a3a3a;
+            color: #fff;
+            border: 2px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #filterBtn:hover {
+            background-color: #4a4a4a;
+        }
+
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+            background-color: #3a3a3a;
+            border: 2px solid #444;
+            border-radius: 5px;
+            padding: 10px;
+            z-index: 100;
+            min-width: 200px;
+        }
+
+        .filter-dropdown.show {
+            display: block;
+        }
+
+        .filter-option {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .filter-option:hover {
+            background-color: #4a4a4a;
+        }
+
+        .admin-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .admin-btn:hover {
+            background-color: #666;
+        }
+
+        .brainrot-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: fit-content;
+        }
+
+        .brainrot-card {
+            background-color: #3a3a3a;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            width: 200px;
+        }
+
+        .brainrot-image {
+            width: 100%;
+            height: 150px;
+            background-color: #555;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .brainrot-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .brainrot-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .brainrot-info {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .value-text {
+            color: #00ff00;
+        }
+
+        .demand-low {
+            color: #90ee90;
+        }
+
+        .demand-average {
+            color: #ffff00;
+        }
+
+        .demand-high {
+            color: #ff0000;
+        }
+
+        .rarity-common {
+            color: #808080;
+        }
+
+        .rarity-rare {
+            color: #0000ff;
+        }
+
+        .rarity-epic {
+            color: #800080;
+        }
+
+        .rarity-legendary {
+            color: #ffff00;
+        }
+
+        .rarity-mythic {
+            color: #ff0000;
+        }
+
+        .rarity-god {
+            background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rainbow 3s linear infinite;
+            background-size: 200% 100%;
+        }
+
+        .rarity-secret {
+            background: linear-gradient(90deg, #000, #fff, #000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient 3s linear infinite;
+            background-size: 200% 100%;
+        }
+
+        .rarity-og {
+            background: linear-gradient(90deg, #000, #ffff00, #000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient 3s linear infinite;
+            background-size: 200% 100%;
+        }
+
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #3a3a3a;
+            padding: 30px;
+            border-radius: 10px;
+            width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            background-color: #2a2a2a;
+            color: #fff;
+            border: 2px solid #444;
+            border-radius: 5px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-save {
+            background-color: #00aa00;
+            color: #fff;
+        }
+
+        .btn-save:hover {
+            background-color: #00cc00;
+        }
+
+        .btn-cancel {
+            background-color: #aa0000;
+            color: #fff;
+        }
+
+        .btn-cancel:hover {
+            background-color: #cc0000;
+        }
+
+        .delete-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #444;
+        }
+
+        .delete-section select {
+            width: 100%;
+            padding: 10px;
+            background-color: #2a2a2a;
+            color: #fff;
+            border: 2px solid #444;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .btn-delete {
+            width: 100%;
+            padding: 10px;
+            background-color: #aa0000;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-delete:hover {
+            background-color: #cc0000;
+        }
+    </style>
 </head>
 <body>
-  <div class="glow-bubble"></div>
-  <header>Brainrot Values</header>
-  <div class="controls">
-    <input id="search" type="text" placeholder="Search...">
-    <select id="filter">
-      <option value="">Sort/Filter</option>
-      <option value="value-desc">Value: High → Low</option>
-      <option value="value-asc">Value: Low → High</option>
-      <option value="demand-desc">Demand: High → Low</option>
-      <option value="demand-asc">Demand: Low → High</option>
-      <option value="rarity-desc">Rarity: High → Low</option>
-      <option value="rarity-asc">Rarity: Low → High</option>
-    </select>
-  </div>
-  <div id="grid"></div>
-  <div class="admin-btn"><button id="adminBtn" class="btn">Admin</button></div>
-  <div id="modalBackdrop" class="modal-backdrop">
-    <div class="modal"><div id="modalContent"></div></div>
-  </div>
-  <script>
-    const STORAGE_KEY = 'brainrot_values_v2';
-    const ADMIN_PW = 'admindev123';
+    <div class="background-bubble"></div>
+    
+    <h1>Brainrot Values</h1>
+    
+    <div class="controls">
+        <input type="text" id="searchBar" placeholder="Search...">
+        <div class="filter-container">
+            <button id="filterBtn">filter</button>
+            <div id="filterDropdown" class="filter-dropdown">
+                <div class="filter-option" data-sort="name">Sort by Name</div>
+                <div class="filter-option" data-sort="value">Sort by Value</div>
+                <div class="filter-option" data-sort="demand">Sort by Demand</div>
+                <div class="filter-option" data-sort="rarity">Sort by Rarity</div>
+            </div>
+        </div>
+    </div>
 
-    const rarityOrder = { 'Common':1,'Rare':2,'Epic':3,'Legendary':4,'Mythic':5,'OG':6,'Secret':7,'God':8 };
-    const demandOrder = { 'Low':1,'Average':2,'High':3 };
+    <div class="brainrot-grid" id="brainrotGrid"></div>
 
-    function parseValue(v){
-      if(!v) return 0;
-      const m = v.match(/([0-9.]+)\s*([KMBT])?/i);
-      if(!m) return parseFloat(v)||0;
-      let num = parseFloat(m[1]);
-      const map = {K:1e3,M:1e6,B:1e9,T:1e12};
-      if(m[2]) num *= map[m[2].toUpperCase()]||1;
-      return num;
-    }
+    <button class="admin-btn" id="adminBtn">Admin</button>
 
-    function load(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY))||[] }catch(e){ return [] } }
-    function save(data){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) }
+    <div class="modal" id="passwordModal">
+        <div class="modal-content">
+            <h2>Admin Login</h2>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="passwordInput">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-save" id="loginBtn">Login</button>
+                <button class="btn-cancel" id="cancelLoginBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-    let brainrots = load();
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <h2>Admin Panel</h2>
+            <h3>Add/Edit Brainrot</h3>
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" id="brainrotName">
+            </div>
+            <div class="form-group">
+                <label>Image:</label>
+                <input type="text" id="brainrotImage" placeholder="example_loso.png">
+            </div>
+            <div class="form-group">
+                <label>Value:</label>
+                <input type="text" id="brainrotValue" placeholder="100M">
+            </div>
+            <div class="form-group">
+                <label>Demand:</label>
+                <select id="brainrotDemand">
+                    <option value="Low">Low</option>
+                    <option value="Average">Average</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Rarity:</label>
+                <select id="brainrotRarity">
+                    <option value="Common">Common</option>
+                    <option value="Rare">Rare</option>
+                    <option value="Epic">Epic</option>
+                    <option value="Legendary">Legendary</option>
+                    <option value="Mythic">Mythic</option>
+                    <option value="God">God</option>
+                    <option value="Secret">Secret</option>
+                    <option value="OG">OG</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-save" id="saveBrainrotBtn">Add Brainrot</button>
+                <button class="btn-cancel" id="closeAdminBtn">Close</button>
+            </div>
 
-    function render(){
-      const search = document.getElementById('search').value.toLowerCase();
-      const filter = document.getElementById('filter').value;
-      let list = brainrots.filter(b => b.name.toLowerCase().includes(search));
-      list.sort((a,b)=>{
-        switch(filter){
-          case 'value-desc': return parseValue(b.value)-parseValue(a.value);
-          case 'value-asc': return parseValue(a.value)-parseValue(b.value);
-          case 'demand-desc': return demandOrder[b.demand]-demandOrder[a.demand];
-          case 'demand-asc': return demandOrder[a.demand]-demandOrder[b.demand];
-          case 'rarity-desc': return rarityOrder[b.rarity]-rarityOrder[a.rarity];
-          case 'rarity-asc': return rarityOrder[a.rarity]-rarityOrder[b.rarity];
-          default: return 0;
-        }
-      });
-      const grid = document.getElementById('grid');
-      grid.innerHTML = '';
-      if(list.length===0){ grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#888;">No brainrots yet.</div>'; return; }
-      list.forEach((b,i)=>{
-        const card = document.createElement('div'); card.className='card';
-        const rarityClass = 'rarity-'+b.rarity.toLowerCase();
-        card.innerHTML = `<img src="images/${b.image}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
-          <div class="name ${rarityClass}">${b.name}</div>
-          <div class="value">${b.value}</div>
-          <div class="demand demand-${b.demand.toLowerCase()}">${b.demand}</div>`;
-        if(localStorage.getItem('admin_unlocked')==='1'){
-          const del = document.createElement('button'); del.textContent='Delete'; del.className='btn'; del.style.marginTop='8px';
-          del.onclick=()=>{ brainrots.splice(i,1); save(brainrots); render(); };
-          card.appendChild(del);
-        }
-        grid.appendChild(card);
-      });
-    }
+            <div class="delete-section">
+                <h3>Delete Brainrot</h3>
+                <select id="deleteBrainrotSelect">
+                    <option value="">Select a brainrot to delete...</option>
+                </select>
+                <button class="btn-delete" id="deleteBrainrotBtn">Delete Selected</button>
+            </div>
+        </div>
+    </div>
 
-    document.getElementById('search').addEventListener('input', render);
-    document.getElementById('filter').addEventListener('change', render);
+    <script>
+        let brainrots = JSON.parse(localStorage.getItem('brainrots')) || [];
+        let currentSort = 'name';
+        let isAdmin = false;
 
-    const adminBtn=document.getElementById('adminBtn');
-    const backdrop=document.getElementById('modalBackdrop');
-    const modalContent=document.getElementById('modalContent');
-
-    function showModal(html){ backdrop.style.display='flex'; modalContent.innerHTML=html; }
-    function closeModal(){ backdrop.style.display='none'; }
-    backdrop.onclick=(e)=>{ if(e.target===backdrop) closeModal(); };
-
-    adminBtn.onclick=()=>{
-      if(localStorage.getItem('admin_unlocked')==='1'){ showAddModal(); return; }
-      showModal(`<h3>Admin Login</h3><input id='pw' type='password' placeholder='Password'><br><br><button id='login' class='btn'>Login</button>`);
-      document.getElementById('login').onclick=()=>{
-        const pw=document.getElementById('pw').value;
-        if(pw===ADMIN_PW){ localStorage.setItem('admin_unlocked','1'); closeModal(); showAddModal(); }
-        else alert('Wrong password');
-      };
-    };
-
-    function showAddModal(){
-      showModal(`<h3>Add Brainrot</h3>
-        <input id='name' placeholder='Name'><br>
-        <input id='image' placeholder='Image filename'><br>
-        <input id='value' placeholder='Value (e.g. 100M)'><br>
-        <select id='demand'><option>Low</option><option>Average</option><option>High</option></select><br>
-        <select id='rarity'><option>Common</option><option>Rare</option><option>Epic</option><option>Legendary</option><option>Mythic</option><option>OG</option><option>Secret</option><option>God</option></select><br>
-        <button id='add' class='btn'>Add</button>`);
-      document.getElementById('add').onclick=()=>{
-        const b={
-          name:document.getElementById('name').value.trim(),
-          image:document.getElementById('image').value.trim(),
-          value:document.getElementById('value').value.trim(),
-          demand:document.getElementById('demand').value,
-          rarity:document.getElementById('rarity').value
+        const rarityOrder = {
+            'Common': 1,
+            'Rare': 2,
+            'Epic': 3,
+            'Legendary': 4,
+            'Mythic': 5,
+            'God': 6,
+            'Secret': 7,
+            'OG': 8
         };
-        if(!b.name) return alert('Name required');
-        brainrots.push(b); save(brainrots); closeModal(); render();
-      };
-    }
 
-    render();
-  </script>
+        const demandOrder = {
+            'Low': 1,
+            'Average': 2,
+            'High': 3
+        };
+
+        function parseValue(value) {
+            const num = parseFloat(value);
+            if (value.includes('M')) return num * 1000000;
+            if (value.includes('K')) return num * 1000;
+            if (value.includes('B')) return num * 1000000000;
+            return num;
+        }
+
+        function renderBrainrots() {
+            const grid = document.getElementById('brainrotGrid');
+            const searchTerm = document.getElementById('searchBar').value.toLowerCase();
+            
+            let filtered = brainrots.filter(b => b.name.toLowerCase().includes(searchTerm));
+            
+            filtered.sort((a, b) => {
+                if (currentSort === 'name') {
+                    return a.name.localeCompare(b.name);
+                } else if (currentSort === 'value') {
+                    return parseValue(b.value) - parseValue(a.value);
+                } else if (currentSort === 'demand') {
+                    return demandOrder[b.demand] - demandOrder[a.demand];
+                } else if (currentSort === 'rarity') {
+                    return rarityOrder[b.rarity] - rarityOrder[a.rarity];
+                }
+                return 0;
+            });
+
+            grid.innerHTML = filtered.map(brainrot => `
+                <div class="brainrot-card">
+                    <div class="brainrot-image">
+                        <img src="images/${brainrot.image}" alt="${brainrot.name}" onerror="this.style.display='none'">
+                    </div>
+                    <div class="brainrot-name rarity-${brainrot.rarity.toLowerCase()}">${brainrot.name}</div>
+                    <div class="brainrot-info">Value: <span class="value-text">${brainrot.value}</span></div>
+                    <div class="brainrot-info">Demand: <span class="demand-${brainrot.demand.toLowerCase()}">${brainrot.demand}</span></div>
+                    <div class="brainrot-info">Rarity: <span class="rarity-${brainrot.rarity.toLowerCase()}">${brainrot.rarity}</span></div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('searchBar').addEventListener('input', renderBrainrots);
+
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            document.getElementById('filterDropdown').classList.toggle('show');
+        });
+
+        document.querySelectorAll('.filter-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                currentSort = e.target.dataset.sort;
+                document.getElementById('filterDropdown').classList.remove('show');
+                renderBrainrots();
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-container')) {
+                document.getElementById('filterDropdown').classList.remove('show');
+            }
+        });
+
+        document.getElementById('adminBtn').addEventListener('click', () => {
+            if (!isAdmin) {
+                document.getElementById('passwordModal').classList.add('show');
+            } else {
+                openAdminPanel();
+            }
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const password = document.getElementById('passwordInput').value;
+            if (password === 'admindev123') {
+                isAdmin = true;
+                document.getElementById('passwordModal').classList.remove('show');
+                document.getElementById('passwordInput').value = '';
+                openAdminPanel();
+            } else {
+                alert('Incorrect password!');
+            }
+        });
+
+        document.getElementById('cancelLoginBtn').addEventListener('click', () => {
+            document.getElementById('passwordModal').classList.remove('show');
+            document.getElementById('passwordInput').value = '';
+        });
+
+        function openAdminPanel() {
+            updateDeleteDropdown();
+            document.getElementById('adminModal').classList.add('show');
+        }
+
+        document.getElementById('closeAdminBtn').addEventListener('click', () => {
+            document.getElementById('adminModal').classList.remove('show');
+            clearForm();
+        });
+
+        document.getElementById('saveBrainrotBtn').addEventListener('click', () => {
+            const name = document.getElementById('brainrotName').value;
+            const image = document.getElementById('brainrotImage').value;
+            const value = document.getElementById('brainrotValue').value;
+            const demand = document.getElementById('brainrotDemand').value;
+            const rarity = document.getElementById('brainrotRarity').value;
+
+            if (!name || !image || !value) {
+                alert('Please fill out all required fields!');
+                return;
+            }
+
+            brainrots.push({ name, image, value, demand, rarity });
+            localStorage.setItem('brainrots', JSON.stringify(brainrots));
+            renderBrainrots();
+            updateDeleteDropdown();
+            clearForm();
+            alert('Brainrot added successfully!');
+        });
+
+        function updateDeleteDropdown() {
+            const select = document.getElementById('deleteBrainrotSelect');
+            select.innerHTML = '<option value="">Select a brainrot to delete...</option>' +
+                brainrots.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
+        }
+
+        document.getElementById('deleteBrainrotBtn').addEventListener('click', () => {
+            const index = document.getElementById('deleteBrainrotSelect').value;
+            if (index === '') {
+                alert('Please select a brainrot to delete!');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete "${brainrots[index].name}"?`)) {
+                brainrots.splice(index, 1);
+                localStorage.setItem('brainrots', JSON.stringify(brainrots));
+                renderBrainrots();
+                updateDeleteDropdown();
+                alert('Brainrot deleted successfully!');
+            }
+        });
+
+        function clearForm() {
+            document.getElementById('brainrotName').value = '';
+            document.getElementById('brainrotImage').value = '';
+            document.getElementById('brainrotValue').value = '';
+            document.getElementById('brainrotDemand').value = 'Low';
+            document.getElementById('brainrotRarity').value = 'Common';
+        }
+
+        renderBrainrots();
+    </script>
 </body>
 </html>
