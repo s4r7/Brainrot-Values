@@ -1,739 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brainrot Values</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: #1a1a1a;
-            color: #fff;
-            font-family: 'Poppins', sans-serif;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        .background-bubble {
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(255, 165, 0, 0.3), transparent);
-            border-radius: 50%;
-            top: 0;
-            right: 0;
-            transform: translate(30%, -30%);
-            z-index: -1;
-            filter: blur(100px);
-        }
-
-        h1 {
-            font-size: 48px;
-            margin-bottom: 30px;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #searchBar {
-            width: 400px;
-            padding: 15px;
-            font-size: 16px;
-            border: 2px solid #444;
-            background: linear-gradient(90deg, #3a3a3a, #4a4a4a, #3a3a3a);
-            background-size: 200% 100%;
-            color: #fff;
-            border-radius: 8px;
-            animation: searchGradient 3s ease infinite;
-        }
-
-        @keyframes searchGradient {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .filter-container {
-            position: relative;
-        }
-
-        #filterBtn {
-            padding: 15px;
-            font-size: 16px;
-            background: linear-gradient(135deg, #3a3a3a, #4a4a4a);
-            color: #fff;
-            border: 2px solid #555;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        #filterBtn:hover {
-            background: linear-gradient(135deg, #4a4a4a, #5a5a5a);
-            transform: scale(1.05);
-        }
-
-        #filterBtn::before {
-            content: '▼';
-            font-size: 18px;
-        }
-
-        .filter-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 5px;
-            background-color: #3a3a3a;
-            border: 2px solid #555;
-            border-radius: 8px;
-            padding: 10px;
-            z-index: 100;
-            min-width: 200px;
-            opacity: 0;
-            transform: translateY(-10px) scale(0.95);
-            pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        .filter-dropdown.show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: all;
-        }
-
-        .filter-option {
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: all 0.2s ease;
-        }
-
-        .filter-option:hover {
-            background-color: #4a4a4a;
-            transform: translateX(5px);
-        }
-
-        .admin-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 8px;
-            background-color: transparent;
-            color: #666;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 20px;
-            transition: color 0.3s ease;
-        }
-
-        .admin-btn:hover {
-            color: #999;
-        }
-
-        .brainrot-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-            width: 100%;
-        }
-
-        .brainrot-card {
-            background-color: #3a3a3a;
-            border: 2px solid #444;
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .brainrot-image {
-            width: 100%;
-            height: 150px;
-            background-color: #555;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .brainrot-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .brainrot-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .brainrot-info {
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .value-text {
-            color: #00ff00;
-        }
-
-        .demand-low {
-            color: #90ee90;
-        }
-
-        .demand-average {
-            color: #ffff00;
-        }
-
-        .demand-high {
-            color: #ff0000;
-        }
-
-        .rarity-common {
-            color: #808080;
-        }
-
-        .rarity-rare {
-            color: #0000ff;
-        }
-
-        .rarity-epic {
-            color: #800080;
-        }
-
-        .rarity-legendary {
-            color: #ffff00;
-        }
-
-        .rarity-mythic {
-            color: #ff0000;
-        }
-
-        .rarity-god {
-            background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: rainbow 3s linear infinite;
-            background-size: 200% 100%;
-        }
-
-        .rarity-secret {
-            background: linear-gradient(90deg, #000, #fff, #000);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradient 3s linear infinite;
-            background-size: 200% 100%;
-        }
-
-        .rarity-og {
-            background: linear-gradient(90deg, #000, #ffff00, #000);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradient 3s linear infinite;
-            background-size: 200% 100%;
-        }
-
-        @keyframes rainbow {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 200% 50%; }
-        }
-
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 200% 50%; }
-        }
-
-        .modal {
-            display: flex;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal.show {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .modal.show .modal-content {
-            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        @keyframes popIn {
-            0% {
-                transform: scale(0.7);
-                opacity: 0;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .modal-content {
-            background-color: #3a3a3a;
-            padding: 30px;
-            border-radius: 10px;
-            width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border: 2px solid #555;
-        }
-
-        .modal-content h2 {
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            background-color: #2a2a2a;
-            color: #fff;
-            border: 2px solid #444;
-            border-radius: 5px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .btn-save {
-            background-color: #00aa00;
-            color: #fff;
-        }
-
-        .btn-save:hover {
-            background-color: #00cc00;
-        }
-
-        .btn-cancel {
-            background-color: #aa0000;
-            color: #fff;
-        }
-
-        .btn-cancel:hover {
-            background-color: #cc0000;
-        }
-
-        .delete-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #444;
-        }
-
-        .delete-section select {
-            width: 100%;
-            padding: 10px;
-            background-color: #2a2a2a;
-            color: #fff;
-            border: 2px solid #444;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-
-        .btn-delete {
-            width: 100%;
-            padding: 10px;
-            background-color: #aa0000;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .btn-delete:hover {
-            background-color: #cc0000;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brainrot Values</title>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a1a;color:#fff;font-family:'Poppins',sans-serif;padding:20px;position:relative;overflow-x:hidden}
+.background-bubble{position:fixed;width:600px;height:600px;background:radial-gradient(circle,rgba(255,165,0,.3),transparent);border-radius:50%;top:0;right:0;transform:translate(30%,-30%);z-index:-1;filter:blur(100px)}
+h1{font-size:48px;margin-bottom:30px}
+.controls{display:flex;gap:15px;margin-bottom:30px;align-items:center;justify-content:center}
+#searchBar{width:400px;padding:15px;font-size:16px;border:2px solid #444;background:linear-gradient(90deg,#3a3a3a,#4a4a4a,#3a3a3a);background-size:200% 100%;color:#fff;border-radius:8px;animation:searchGradient 3s ease infinite}
+@keyframes searchGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.filter-container{position:relative}
+#filterBtn{padding:15px;font-size:16px;background:linear-gradient(135deg,#3a3a3a,#4a4a4a);color:#fff;border:2px solid #555;border-radius:8px;cursor:pointer;width:50px;height:50px;display:flex;align-items:center;justify-content:center;transition:all .3s ease}
+#filterBtn:hover{background:linear-gradient(135deg,#4a4a4a,#5a5a5a);transform:scale(1.05)}
+#filterBtn::before{content:'▼';font-size:18px}
+.filter-dropdown{position:absolute;top:100%;right:0;margin-top:5px;background:#3a3a3a;border:2px solid #555;border-radius:8px;padding:10px;z-index:100;min-width:200px;opacity:0;transform:translateY(-10px) scale(.95);pointer-events:none;transition:all .3s cubic-bezier(.68,-.55,.265,1.55)}
+.filter-dropdown.show{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
+.filter-option{padding:10px;cursor:pointer;border-radius:5px;transition:all .2s ease}
+.filter-option:hover{background:#4a4a4a;transform:translateX(5px)}
+.admin-btn{position:fixed;top:20px;right:20px;padding:8px;background:transparent;color:#666;border:none;border-radius:5px;cursor:pointer;font-size:20px;transition:color .3s ease}
+.admin-btn:hover{color:#999}
+.brainrot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;width:100%}
+.brainrot-card{background:#3a3a3a;border:2px solid #444;border-radius:8px;padding:15px}
+.brainrot-image{width:100%;height:150px;background:#555;border-radius:5px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.brainrot-image img{width:100%;height:100%;object-fit:cover}
+.brainrot-name{font-size:18px;font-weight:bold;margin-bottom:8px}
+.brainrot-info{font-size:14px;margin-bottom:5px}
+.value-text{color:#0f0}
+.second-text{color:#ff0}
+.demand-low{color:#90ee90}
+.demand-average{color:#ff0}
+.demand-high{color:red}
+.rarity-common{color:gray}
+.rarity-rare{color:#00f}
+.rarity-epic{color:purple}
+.rarity-legendary{color:#ff0}
+.rarity-mythic{color:red}
+.rarity-god{background:linear-gradient(90deg,red,orange,yellow,green,blue,indigo,violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbow 3s linear infinite;background-size:200% 100%}
+.rarity-secret{background:linear-gradient(90deg,#000,#fff,#000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradient 3s linear infinite;background-size:200% 100%}
+.rarity-og{background:linear-gradient(90deg,#000,#ff0,#000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradient 3s linear infinite;background-size:200% 100%}
+@keyframes rainbow{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+@keyframes gradient{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+.modal{display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:opacity .3s ease}
+.modal.show{opacity:1;pointer-events:all}
+.modal.show .modal-content{animation:popIn .4s cubic-bezier(.68,-.55,.265,1.55)}
+@keyframes popIn{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+.modal-content{background:#3a3a3a;padding:30px;border-radius:10px;width:500px;max-height:90vh;overflow-y:auto;border:2px solid #555}
+.modal-content h2{margin-bottom:20px}
+.form-group{margin-bottom:15px}
+.form-group label{display:block;margin-bottom:5px}
+.form-group input,.form-group select{width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px}
+.modal-buttons{display:flex;gap:10px;margin-top:20px}
+.modal-buttons button{flex:1;padding:10px;border:none;border-radius:5px;cursor:pointer;font-size:16px}
+.btn-save{background:#0a0;color:#fff}
+.btn-save:hover{background:#0c0}
+.btn-cancel{background:#a00;color:#fff}
+.btn-cancel:hover{background:#c00}
+.edit-section,.delete-section{margin-top:30px;padding-top:20px;border-top:2px solid #444}
+.edit-section select,.delete-section select{width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-bottom:10px}
+.btn-delete{width:100%;padding:10px;background:#a00;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:16px}
+.btn-delete:hover{background:#c00}
+</style>
 </head>
 <body>
-    <div class="background-bubble"></div>
-    
-    <h1>Brainrot Values</h1>
-    
-    <div class="controls">
-        <input type="text" id="searchBar" placeholder="Search...">
-        <div class="filter-container">
-            <button id="filterBtn"></button>
-            <div id="filterDropdown" class="filter-dropdown">
-                <div class="filter-option" data-sort="name">Sort by Name</div>
-                <div class="filter-option" data-sort="value">Sort by Value</div>
-                <div class="filter-option" data-sort="demand">Sort by Demand</div>
-                <div class="filter-option" data-sort="rarity">Sort by Rarity</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="brainrot-grid" id="brainrotGrid"></div>
-
-    <button class="admin-btn" id="adminBtn">⚙</button>
-
-    <div class="modal" id="passwordModal">
-        <div class="modal-content">
-            <h2>Admin Login</h2>
-            <div class="form-group">
-                <label>Password:</label>
-                <input type="password" id="passwordInput">
-            </div>
-            <div class="modal-buttons">
-                <button class="btn-save" id="loginBtn">Login</button>
-                <button class="btn-cancel" id="cancelLoginBtn">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="adminModal">
-        <div class="modal-content">
-            <h2>Admin Panel</h2>
-            <h3>Add/Edit Brainrot</h3>
-            <div class="form-group">
-                <label>Name:</label>
-                <input type="text" id="brainrotName">
-            </div>
-            <div class="form-group">
-                <label>Image:</label>
-                <input type="text" id="brainrotImage" placeholder="example_loso.png">
-            </div>
-            <div class="form-group">
-                <label>Value:</label>
-                <input type="text" id="brainrotValue" placeholder="100M">
-            </div>
-            <div class="form-group">
-                <label>Demand:</label>
-                <select id="brainrotDemand">
-                    <option value="Low">Low</option>
-                    <option value="Average">Average</option>
-                    <option value="High">High</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Rarity:</label>
-                <select id="brainrotRarity">
-                    <option value="Common">Common</option>
-                    <option value="Rare">Rare</option>
-                    <option value="Epic">Epic</option>
-                    <option value="Legendary">Legendary</option>
-                    <option value="Mythic">Mythic</option>
-                    <option value="God">God</option>
-                    <option value="Secret">Secret</option>
-                    <option value="OG">OG</option>
-                </select>
-            </div>
-            <div class="modal-buttons">
-                <button class="btn-save" id="saveBrainrotBtn">Add Brainrot</button>
-                <button class="btn-cancel" id="closeAdminBtn">Close</button>
-            </div>
-
-            <div class="delete-section">
-                <h3>Delete Brainrot</h3>
-                <select id="deleteBrainrotSelect">
-                    <option value="">Select a brainrot to delete...</option>
-                </select>
-                <button class="btn-delete" id="deleteBrainrotBtn">Delete Selected</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCkynWoOIhS3Vlh7RmY1kStGrz0h3TOg_g",
-            authDomain: "brainrot-values.firebaseapp.com",
-            databaseURL: "https://brainrot-values-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "brainrot-values",
-            storageBucket: "brainrot-values.appspot.com",
-            messagingSenderId: "395140547817",
-            appId: "1:395140547817:web:a9f16c95f25c16d30c9c78"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        let brainrots = [];
-        let currentSort = 'name';
-        let isAdmin = false;
-
-        const rarityOrder = {
-            'Common': 1,
-            'Rare': 2,
-            'Epic': 3,
-            'Legendary': 4,
-            'Mythic': 5,
-            'God': 6,
-            'Secret': 7,
-            'OG': 8
-        };
-
-        const demandOrder = {
-            'Low': 1,
-            'Average': 2,
-            'High': 3
-        };
-
-        function loadBrainrots() {
-            console.log('Loading brainrots from Firebase...');
-            const brainrotsRef = database.ref('brainrots');
-            
-            brainrotsRef.on('value', (snapshot) => {
-                brainrots = [];
-                const data = snapshot.val();
-                console.log('Firebase data received:', data);
-                if (data) {
-                    Object.keys(data).forEach(key => {
-                        brainrots.push(data[key]);
-                    });
-                }
-                console.log('Brainrots array:', brainrots);
-                renderBrainrots();
-            });
-        }
-
-        function saveBrainrot(brainrot) {
-            console.log('saveBrainrot called with:', brainrot);
-            
-            const safeKey = brainrot.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-            console.log('Safe key:', safeKey);
-            
-            return database.ref(`brainrots/${safeKey}`).set(brainrot)
-                .then(() => {
-                    console.log('Firebase set completed successfully');
-                    return true;
-                })
-                .catch((error) => {
-                    console.error('Error saving brainrot:', error);
-                    alert('Error saving brainrot: ' + error.message);
-                    return false;
-                });
-        }
-
-        function deleteBrainrot(name) {
-            const safeKey = name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-            
-            return database.ref(`brainrots/${safeKey}`).remove()
-                .then(() => {
-                    console.log('Brainrot deleted successfully');
-                    return true;
-                })
-                .catch((error) => {
-                    console.error('Error deleting brainrot:', error);
-                    return false;
-                });
-        }
-
-        function parseValue(value) {
-            const num = parseFloat(value);
-            if (value.includes('M')) return num * 1000000;
-            if (value.includes('K')) return num * 1000;
-            if (value.includes('B')) return num * 1000000000;
-            return num;
-        }
-
-        function renderBrainrots() {
-            const grid = document.getElementById('brainrotGrid');
-            const searchTerm = document.getElementById('searchBar').value.toLowerCase();
-            
-            let filtered = brainrots.filter(b => b.name.toLowerCase().includes(searchTerm));
-            
-            filtered.sort((a, b) => {
-                if (currentSort === 'name') {
-                    return a.name.localeCompare(b.name);
-                } else if (currentSort === 'value') {
-                    return parseValue(b.value) - parseValue(a.value);
-                } else if (currentSort === 'demand') {
-                    return demandOrder[b.demand] - demandOrder[a.demand];
-                } else if (currentSort === 'rarity') {
-                    return rarityOrder[b.rarity] - rarityOrder[a.rarity];
-                }
-                return 0;
-            });
-
-            grid.innerHTML = filtered.map(brainrot => `
-                <div class="brainrot-card">
-                    <div class="brainrot-image">
-                        <img src="images/${brainrot.image}" alt="${brainrot.name}" onerror="this.style.display='none'">
-                    </div>
-                    <div class="brainrot-name rarity-${brainrot.rarity.toLowerCase()}">${brainrot.name}</div>
-                    <div class="brainrot-info">Value: <span class="value-text">${brainrot.value}</span></div>
-                    <div class="brainrot-info">Demand: <span class="demand-${brainrot.demand.toLowerCase()}">${brainrot.demand}</span></div>
-                    <div class="brainrot-info">Rarity: <span class="rarity-${brainrot.rarity.toLowerCase()}">${brainrot.rarity}</span></div>
-                </div>
-            `).join('');
-        }
-
-        document.getElementById('searchBar').addEventListener('input', renderBrainrots);
-
-        document.getElementById('filterBtn').addEventListener('click', () => {
-            document.getElementById('filterDropdown').classList.toggle('show');
-        });
-
-        document.querySelectorAll('.filter-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                currentSort = e.target.dataset.sort;
-                document.getElementById('filterDropdown').classList.remove('show');
-                renderBrainrots();
-            });
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.filter-container')) {
-                document.getElementById('filterDropdown').classList.remove('show');
-            }
-        });
-
-        document.getElementById('adminBtn').addEventListener('click', () => {
-            if (!isAdmin) {
-                document.getElementById('passwordModal').classList.add('show');
-            } else {
-                openAdminPanel();
-            }
-        });
-
-        document.getElementById('loginBtn').addEventListener('click', () => {
-            const password = document.getElementById('passwordInput').value;
-            if (password === 'admindev123') {
-                isAdmin = true;
-                document.getElementById('passwordModal').classList.remove('show');
-                document.getElementById('passwordInput').value = '';
-                openAdminPanel();
-            } else {
-                alert('Incorrect password!');
-            }
-        });
-
-        document.getElementById('cancelLoginBtn').addEventListener('click', () => {
-            document.getElementById('passwordModal').classList.remove('show');
-            document.getElementById('passwordInput').value = '';
-        });
-
-        function openAdminPanel() {
-            updateDeleteDropdown();
-            document.getElementById('adminModal').classList.add('show');
-        }
-
-        document.getElementById('closeAdminBtn').addEventListener('click', () => {
-            document.getElementById('adminModal').classList.remove('show');
-            clearForm();
-        });
-
-        document.getElementById('saveBrainrotBtn').addEventListener('click', () => {
-            console.log('Save button clicked');
-            const name = document.getElementById('brainrotName').value;
-            const image = document.getElementById('brainrotImage').value;
-            const value = document.getElementById('brainrotValue').value;
-            const demand = document.getElementById('brainrotDemand').value;
-            const rarity = document.getElementById('brainrotRarity').value;
-
-            console.log('Form values:', { name, image, value, demand, rarity });
-
-            if (!name || !image || !value) {
-                alert('Please fill out all required fields!');
-                return;
-            }
-
-            console.log('Attempting to save brainrot...');
-            const newBrainrot = { name, image, value, demand, rarity };
-            
-            saveBrainrot(newBrainrot).then(success => {
-                console.log('Save success:', success);
-                
-                if (success) {
-                    updateDeleteDropdown();
-                    clearForm();
-                    alert('Brainrot added successfully!');
-                } else {
-                    alert('Error saving brainrot. Check console for details.');
-                }
-            });
-        });
-
-        function updateDeleteDropdown() {
-            const select = document.getElementById('deleteBrainrotSelect');
-            select.innerHTML = '<option value="">Select a brainrot to delete...</option>' +
-                brainrots.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
-        }
-
-        document.getElementById('deleteBrainrotBtn').addEventListener('click', () => {
-            const index = document.getElementById('deleteBrainrotSelect').value;
-            if (index === '') {
-                alert('Please select a brainrot to delete!');
-                return;
-            }
-
-            const brainrotToDelete = brainrots[index];
-            if (confirm(`Are you sure you want to delete "${brainrotToDelete.name}"?`)) {
-                deleteBrainrot(brainrotToDelete.name).then(success => {
-                    if (success) {
-                        updateDeleteDropdown();
-                        alert('Brainrot deleted successfully!');
-                    } else {
-                        alert('Error deleting brainrot. Please try again.');
-                    }
-                });
-            }
-        });
-
-        function clearForm() {
-            document.getElementById('brainrotName').value = '';
-            document.getElementById('brainrotImage').value = '';
-            document.getElementById('brainrotValue').value = '';
-            document.getElementById('brainrotDemand').value = 'Low';
-            document.getElementById('brainrotRarity').value = 'Common';
-        }
-
-        renderBrainrots();
-        loadBrainrots();
-    </script>
+<div class="background-bubble"></div>
+<h1>Brainrot Values</h1>
+<div class="controls">
+<input type="text" id="searchBar" placeholder="Search...">
+<div class="filter-container">
+<button id="filterBtn"></button>
+<div id="filterDropdown" class="filter-dropdown">
+<div class="filter-option" data-sort="name">Sort by Name</div>
+<div class="filter-option" data-sort="value">Sort by Value</div>
+<div class="filter-option" data-sort="demand">Sort by Demand</div>
+<div class="filter-option" data-sort="rarity">Sort by Rarity</div>
+</div>
+</div>
+</div>
+<div class="brainrot-grid" id="brainrotGrid"></div>
+<button class="admin-btn" id="adminBtn">⚙</button>
+<div class="modal" id="passwordModal">
+<div class="modal-content">
+<h2>Admin Login</h2>
+<div class="form-group">
+<label>Password:</label>
+<input type="password" id="passwordInput">
+</div>
+<div class="modal-buttons">
+<button class="btn-save" id="loginBtn">Login</button>
+<button class="btn-cancel" id="cancelLoginBtn">Cancel</button>
+</div>
+</div>
+</div>
+<div class="modal" id="adminModal">
+<div class="modal-content">
+<h2>Admin Panel</h2>
+<h3>Add Brainrot</h3>
+<div class="form-group"><label>Name:</label><input type="text" id="brainrotName"></div>
+<div class="form-group"><label>Image:</label><input type="text" id="brainrotImage" placeholder="example.png"></div>
+<div class="form-group"><label>Value:</label><input type="text" id="brainrotValue" placeholder="100M"></div>
+<div class="form-group"><label>Second:</label><input type="text" id="brainrotSecond" placeholder="50M"></div>
+<div class="form-group"><label>Demand:</label><select id="brainrotDemand"><option value="Low">Low</option><option value="Average">Average</option><option value="High">High</option></select></div>
+<div class="form-group"><label>Rarity:</label><select id="brainrotRarity"><option value="Common">Common</option><option value="Rare">Rare</option><option value="Epic">Epic</option><option value="Legendary">Legendary</option><option value="Mythic">Mythic</option><option value="God">God</option><option value="Secret">Secret</option><option value="OG">OG</option></select></div>
+<div class="modal-buttons">
+<button class="btn-save" id="saveBrainrotBtn">Add Brainrot</button>
+<button class="btn-cancel" id="closeAdminBtn">Close</button>
+</div>
+<div class="edit-section">
+<h3>Edit Brainrot</h3>
+<select id="editBrainrotSelect"><option value="">Select a brainrot to edit...</option></select>
+<select id="editFieldSelect"><option value="">Select field to edit...</option><option value="name">Name</option><option value="image">Image</option><option value="value">Value</option><option value="second">Second</option><option value="demand">Demand</option><option value="rarity">Rarity</option></select>
+<div id="editFieldInput"></div>
+<button class="btn-save" id="saveEditBtn" style="width:100%;margin-top:10px">Save Edit</button>
+</div>
+<div class="delete-section">
+<h3>Delete Brainrot</h3>
+<select id="deleteBrainrotSelect"><option value="">Select a brainrot to delete...</option></select>
+<button class="btn-delete" id="deleteBrainrotBtn">Delete Selected</button>
+</div>
+</div>
+</div>
+<script>
+const cfg={apiKey:"AIzaSyCkynWoOIhS3Vlh7RmY1kStGrz0h3TOg_g",authDomain:"brainrot-values.firebaseapp.com",databaseURL:"https://brainrot-values-default-rtdb.europe-west1.firebasedatabase.app",projectId:"brainrot-values",storageBucket:"brainrot-values.appspot.com",messagingSenderId:"395140547817",appId:"1:395140547817:web:a9f16c95f25c16d30c9c78"};
+firebase.initializeApp(cfg);
+const db=firebase.database();
+let brainrots=[],currentSort='name',isAdmin=false;
+const rarityOrder={Common:1,Rare:2,Epic:3,Legendary:4,Mythic:5,God:6,Secret:7,OG:8};
+const demandOrder={Low:1,Average:2,High:3};
+function loadBrainrots(){db.ref('brainrots').on('value',s=>{brainrots=[];const d=s.val();if(d)Object.keys(d).forEach(k=>brainrots.push(d[k]));renderBrainrots();updateDeleteDropdown();updateEditDropdown()})}
+function saveBrainrot(b){const k=b.name.replace(/[^a-zA-Z0-9]/g,'-').toLowerCase();return db.ref(`brainrots/${k}`).set(b).then(()=>true).catch(e=>{alert('Error: '+e.message);return false})}
+function deleteBrainrot(n){const k=n.replace(/[^a-zA-Z0-9]/g,'-').toLowerCase();return db.ref(`brainrots/${k}`).remove().then(()=>true).catch(()=>false)}
+function parseValue(v){const n=parseFloat(v);if(v.includes('M'))return n*1e6;if(v.includes('K'))return n*1e3;if(v.includes('B'))return n*1e9;return n}
+function renderBrainrots(){const g=document.getElementById('brainrotGrid'),st=document.getElementById('searchBar').value.toLowerCase();let f=brainrots.filter(b=>b.name.toLowerCase().includes(st));f.sort((a,b)=>{if(currentSort==='name')return a.name.localeCompare(b.name);if(currentSort==='value')return parseValue(b.value)-parseValue(a.value);if(currentSort==='demand')return demandOrder[b.demand]-demandOrder[a.demand];if(currentSort==='rarity')return rarityOrder[b.rarity]-rarityOrder[a.rarity];return 0});g.innerHTML=f.map(b=>`<div class="brainrot-card"><div class="brainrot-image"><img src="images/${b.image}" alt="${b.name}" onerror="this.style.display='none'"></div><div class="brainrot-name rarity-${b.rarity.toLowerCase()}">${b.name}</div><div class="brainrot-info">Value: <span class="value-text">${b.value}</span></div><div class="brainrot-info">Second: <span class="second-text">${b.second||'N/A'}</span></div><div class="brainrot-info">Demand: <span class="demand-${b.demand.toLowerCase()}">${b.demand}</span></div><div class="brainrot-info">Rarity: <span class="rarity-${b.rarity.toLowerCase()}">${b.rarity}</span></div></div>`).join('')}
+document.getElementById('searchBar').addEventListener('input',renderBrainrots);
+document.getElementById('filterBtn').addEventListener('click',()=>document.getElementById('filterDropdown').classList.toggle('show'));
+document.querySelectorAll('.filter-option').forEach(o=>o.addEventListener('click',e=>{currentSort=e.target.dataset.sort;document.getElementById('filterDropdown').classList.remove('show');renderBrainrots()}));
+document.addEventListener('click',e=>{if(!e.target.closest('.filter-container'))document.getElementById('filterDropdown').classList.remove('show')});
+document.getElementById('adminBtn').addEventListener('click',()=>{if(!isAdmin)document.getElementById('passwordModal').classList.add('show');else openAdminPanel()});
+document.getElementById('loginBtn').addEventListener('click',()=>{if(document.getElementById('passwordInput').value==='admindev123'){isAdmin=true;document.getElementById('passwordModal').classList.remove('show');document.getElementById('passwordInput').value='';openAdminPanel()}else alert('Incorrect password!')});
+document.getElementById('cancelLoginBtn').addEventListener('click',()=>{document.getElementById('passwordModal').classList.remove('show');document.getElementById('passwordInput').value=''});
+function openAdminPanel(){updateDeleteDropdown();updateEditDropdown();document.getElementById('adminModal').classList.add('show')}
+document.getElementById('closeAdminBtn').addEventListener('click',()=>{document.getElementById('adminModal').classList.remove('show');clearForm()});
+document.getElementById('saveBrainrotBtn').addEventListener('click',()=>{const n=document.getElementById('brainrotName').value,i=document.getElementById('brainrotImage').value,v=document.getElementById('brainrotValue').value,s=document.getElementById('brainrotSecond').value,d=document.getElementById('brainrotDemand').value,r=document.getElementById('brainrotRarity').value;if(!n||!i||!v){alert('Please fill out all required fields!');return}saveBrainrot({name:n,image:i,value:v,second:s,demand:d,rarity:r}).then(x=>{if(x){updateDeleteDropdown();updateEditDropdown();clearForm();alert('Brainrot added successfully!')}})});
+function updateDeleteDropdown(){document.getElementById('deleteBrainrotSelect').innerHTML='<option value="">Select a brainrot to delete...</option>'+brainrots.map((b,i)=>`<option value="${i}">${b.name}</option>`).join('')}
+function updateEditDropdown(){document.getElementById('editBrainrotSelect').innerHTML='<option value="">Select a brainrot to edit...</option>'+brainrots.map((b,i)=>`<option value="${i}">${b.name}</option>`).join('')}
+document.getElementById('editBrainrotSelect').addEventListener('change',()=>{document.getElementById('editFieldSelect').value='';document.getElementById('editFieldInput').innerHTML=''});
+document.getElementById('editFieldSelect').addEventListener('change',e=>{const bi=document.getElementById('editBrainrotSelect').value,f=e.target.value,ic=document.getElementById('editFieldInput');if(!bi||!f){ic.innerHTML='';return}const b=brainrots[bi];if(f==='demand')ic.innerHTML=`<select id="editValue" style="width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-top:10px"><option value="Low"${b.demand==='Low'?' selected':''}>Low</option><option value="Average"${b.demand==='Average'?' selected':''}>Average</option><option value="High"${b.demand==='High'?' selected':''}>High</option></select>`;else if(f==='rarity')ic.innerHTML=`<select id="editValue" style="width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-top:10px"><option value="Common"${b.rarity==='Common'?' selected':''}>Common</option><option value="Rare"${b.rarity==='Rare'?' selected':''}>Rare</option><option value="Epic"${b.rarity==='Epic'?' selected':''}>Epic</option><option value="Legendary"${b.rarity==='Legendary'?' selected':''}>Legendary</option><option value="Mythic"${b.rarity==='Mythic'?' selected':''}>Mythic</option><option value="God"${b.rarity==='God'?' selected':''}>God</option><option value="Secret"${b.rarity==='Secret'?' selected':''}>Secret</option><option value="OG"${b.rarity==='OG'?' selected':''}>OG</option></select>`;else ic.innerHTML=`<input type="text" id="editValue" value="${b[f]||''}" placeholder="Enter new ${f}" style="width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-top:10px">`});
+document.getElementById('saveEditBtn').addEventListener('click',()=>{const bi=document.getElementById('editBrainrotSelect').value,f=document.getElementById('editFieldSelect').value,ev=document.getElementById('editValue');if(!bi||!f||!ev){alert('Please select a brainrot and field to edit!');return}const nv=ev.value,br={...brainrots[bi]},on=br.name;br[f]=nv;if(f==='name')deleteBrainrot(on).then(()=>saveBrainrot(br).then(s=>{if(s){document.getElementById('editBrainrotSelect').value='';document.getElementById('editFieldInput').innerHTML='';alert('Brainrot edited successfully!')}}));else saveBrainrot(br).then(s=>{if(s){document.getElementById('editBrainrotSelect').value='';document.getElementById('editFieldInput').innerHTML='';alert('Brainrot edited successfully!')}})});
+document.getElementById('deleteBrainrotBtn').addEventListener('click',()=>{const i=document.getElementById('deleteBrainrotSelect').value;if(i===''){alert('Please select a brainrot to delete!');return}const bd=brainrots[i];if(confirm(`Are you sure you want to delete "${bd.name}"?`))deleteBrainrot(bd.name).then(s=>{if(s){updateDeleteDropdown();alert('Brainrot deleted successfully!')}else alert('Error deleting brainrot.')})});
+function clearForm(){document.getElementById('brainrotName').value='';document.getElementById('brainrotImage').value='';document.getElementById('brainrotValue').value='';document.getElementById('brainrotSecond').value='';document.getElementById('brainrotDemand').value='Low';document.getElementById('brainrotRarity').value='Common'}
+renderBrainrots();loadBrainrots();
+</script>
 </body>
 </html>
