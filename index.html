@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brainrot Values</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
@@ -486,6 +488,19 @@
     </div>
 
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkynWoOIhS3Vlh7RmY1kStGrz0h3TOg_g",
+            authDomain: "brainrot-values.firebaseapp.com",
+            databaseURL: "https://brainrot-values-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "brainrot-values",
+            storageBucket: "brainrot-values.appspot.com",
+            messagingSenderId: "395140547817",
+            appId: "1:395140547817:web:a9f16c95f25c16d30c9c78"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         let brainrots = [];
         let currentSort = 'name';
         let isAdmin = false;
@@ -525,34 +540,36 @@
             });
         }
 
-        async function saveBrainrot(brainrot) {
+        function saveBrainrot(brainrot) {
             console.log('saveBrainrot called with:', brainrot);
             
             const safeKey = brainrot.name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
             console.log('Safe key:', safeKey);
             
-            try {
-                await database.ref(`brainrots/${safeKey}`).set(brainrot);
-                console.log('Firebase set completed successfully');
-                return true;
-            } catch (error) {
-                console.error('Error saving brainrot:', error);
-                alert('Error saving brainrot: ' + error.message);
-                return false;
-            }
+            return database.ref(`brainrots/${safeKey}`).set(brainrot)
+                .then(() => {
+                    console.log('Firebase set completed successfully');
+                    return true;
+                })
+                .catch((error) => {
+                    console.error('Error saving brainrot:', error);
+                    alert('Error saving brainrot: ' + error.message);
+                    return false;
+                });
         }
 
-        async function deleteBrainrot(name) {
+        function deleteBrainrot(name) {
             const safeKey = name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
             
-            try {
-                await database.ref(`brainrots/${safeKey}`).remove();
-                console.log('Brainrot deleted successfully');
-                return true;
-            } catch (error) {
-                console.error('Error deleting brainrot:', error);
-                return false;
-            }
+            return database.ref(`brainrots/${safeKey}`).remove()
+                .then(() => {
+                    console.log('Brainrot deleted successfully');
+                    return true;
+                })
+                .catch((error) => {
+                    console.error('Error deleting brainrot:', error);
+                    return false;
+                });
         }
 
         function parseValue(value) {
@@ -650,7 +667,7 @@
             clearForm();
         });
 
-        document.getElementById('saveBrainrotBtn').addEventListener('click', async () => {
+        document.getElementById('saveBrainrotBtn').addEventListener('click', () => {
             console.log('Save button clicked');
             const name = document.getElementById('brainrotName').value;
             const image = document.getElementById('brainrotImage').value;
@@ -668,8 +685,7 @@
             console.log('Attempting to save brainrot...');
             const newBrainrot = { name, image, value, demand, rarity };
             
-            try {
-                const success = await saveBrainrot(newBrainrot);
+            saveBrainrot(newBrainrot).then(success => {
                 console.log('Save success:', success);
                 
                 if (success) {
@@ -679,10 +695,7 @@
                 } else {
                     alert('Error saving brainrot. Check console for details.');
                 }
-            } catch (error) {
-                console.error('Save error:', error);
-                alert('Error: ' + error.message);
-            }
+            });
         });
 
         function updateDeleteDropdown() {
@@ -691,7 +704,7 @@
                 brainrots.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
         }
 
-        document.getElementById('deleteBrainrotBtn').addEventListener('click', async () => {
+        document.getElementById('deleteBrainrotBtn').addEventListener('click', () => {
             const index = document.getElementById('deleteBrainrotSelect').value;
             if (index === '') {
                 alert('Please select a brainrot to delete!');
@@ -700,13 +713,14 @@
 
             const brainrotToDelete = brainrots[index];
             if (confirm(`Are you sure you want to delete "${brainrotToDelete.name}"?`)) {
-                const success = await deleteBrainrot(brainrotToDelete.name);
-                if (success) {
-                    updateDeleteDropdown();
-                    alert('Brainrot deleted successfully!');
-                } else {
-                    alert('Error deleting brainrot. Please try again.');
-                }
+                deleteBrainrot(brainrotToDelete.name).then(success => {
+                    if (success) {
+                        updateDeleteDropdown();
+                        alert('Brainrot deleted successfully!');
+                    } else {
+                        alert('Error deleting brainrot. Please try again.');
+                    }
+                });
             }
         });
 
@@ -721,7 +735,5 @@
         renderBrainrots();
         loadBrainrots();
     </script>
-</body>
-</html>
 </body>
 </html>
