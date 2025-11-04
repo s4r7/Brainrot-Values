@@ -1,3 +1,8 @@
+Here is the modified code with all the requested features, including the new "Second Calculator" page, the animated top navigation bar, and the calculation logic.
+
+I've integrated the new HTML, CSS, and JavaScript directly into your existing file structure.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,9 +14,21 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#1a1a1a;color:#fff;font-family:'Poppins',sans-serif;padding:20px;position:relative;overflow-x:hidden}
+body{background:#1a1a1a;color:#fff;font-family:'Poppins',sans-serif;padding:0;position:relative;overflow-x:hidden}
 .background-bubble{position:fixed;width:600px;height:600px;background:radial-gradient(circle,rgba(255,165,0,.3),transparent);border-radius:50%;top:0;right:0;transform:translate(30%,-30%);z-index:-1;filter:blur(100px)}
-h1{font-size:48px;margin-bottom:30px}
+
+/* --- New Navigation Bar --- */
+nav{display:flex;justify-content:center;gap:30px;padding:20px;background:#2a2a2a;border-bottom:2px solid #444;width:100%}
+.nav-link{font-size:20px;font-weight:600;color:#ff0;cursor:pointer;padding-bottom:5px;border-bottom:3px solid transparent;transition:all .3s ease}
+.nav-link:hover{transform:translateY(-2px);color:#fff}
+.nav-link.active{color:#fff;border-bottom-color:#ff0}
+
+/* --- Page Containers --- */
+.page{padding:20px;display:none}
+#page-main{display:block} /* Show main page by default */
+#page-calculator{display:none}
+
+h1{font-size:48px;margin-bottom:30px;text-align:center}
 .controls{display:flex;gap:15px;margin-bottom:30px;align-items:center;justify-content:center}
 #searchBar{width:400px;padding:15px;font-size:16px;border:2px solid #444;background:linear-gradient(90deg,#3a3a3a,#4a4a4a,#3a3a3a);background-size:200% 100%;color:#fff;border-radius:8px;animation:searchGradient 3s ease infinite}
 @keyframes searchGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
@@ -23,10 +40,10 @@ h1{font-size:48px;margin-bottom:30px}
 .filter-dropdown.show{opacity:1;transform:translateY(0) scale(1);pointer-events:all}
 .filter-option{padding:10px;cursor:pointer;border-radius:5px;transition:all .2s ease}
 .filter-option:hover{background:#4a4a4a;transform:translateX(5px)}
-.admin-btn{position:fixed;top:20px;right:20px;padding:8px;background:transparent;color:#666;border:none;border-radius:5px;cursor:pointer;font-size:20px;transition:color .3s ease}
+.admin-btn{position:fixed;top:20px;right:20px;padding:8px;background:transparent;color:#666;border:none;border-radius:5px;cursor:pointer;font-size:20px;transition:color .3s ease;z-index:1001}
 .admin-btn:hover{color:#999}
 .brainrot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;width:100%}
-.brainrot-card{background:#3a3a3a;border:2px solid #444;border-radius:8px;padding:15px}
+.brainrot-card{background:#3a3a3a;border:2px solid #444;border-radius:8px;padding:15px;text-align:center}
 .brainrot-image{width:100%;height:150px;background:#555;border-radius:5px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .brainrot-image img{width:100%;height:100%;object-fit:cover}
 .brainrot-name{font-size:18px;font-weight:bold;margin-bottom:8px}
@@ -65,26 +82,94 @@ h1{font-size:48px;margin-bottom:30px}
 .edit-section select,.delete-section select{width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-bottom:10px}
 .btn-delete{width:100%;padding:10px;background:#a00;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:16px}
 .btn-delete:hover{background:#c00}
+
+/* --- New Calculator Page Styles --- */
+#page-calculator h2{text-align:center;font-size:32px;margin-bottom:20px}
+.calculator-layout{display:grid;grid-template-columns:250px 1fr;gap:20px;max-width:1200px;margin:0 auto}
+.calc-left{display:flex;flex-direction:column;gap:15px}
+.calc-left h3{font-size:20px;margin-bottom:5px;text-align:center}
+#calc-brainrot-select{width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;font-family:'Poppins',sans-serif;font-size:16px}
+#calc-selected-brainrot{min-height:200px}
+/* Use existing brainrot card styles */
+#calc-selected-brainrot .brainrot-card{margin-top:10px}
+.calc-right{display:flex;flex-direction:column;gap:20px}
+.calc-box{background:#2a2a2a;border:2px solid #444;border-radius:8px;padding:15px}
+.calc-box h3{font-size:20px;margin-bottom:10px;border-bottom:2px solid #444;padding-bottom:5px}
+.calc-item-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:10px;max-height:200px;overflow-y:auto;padding-right:10px}
+/* Scrollbar for item grid */
+.calc-item-grid::-webkit-scrollbar{width:8px}
+.calc-item-grid::-webkit-scrollbar-track{background:#3a3a3a;border-radius:4px}
+.calc-item-grid::-webkit-scrollbar-thumb{background:#555;border-radius:4px}
+.calc-item-grid::-webkit-scrollbar-thumb:hover{background:#777}
+.calc-item{cursor:pointer;border-radius:5px;padding:5px;background:#3a3a3a;border:2px solid #555}
+.calc-item img{width:100%;height:auto;display:block;border-radius:3px;filter:grayscale(1);transform:scale(1);transition:all .3s ease-in-out}
+.calc-item.active img{filter:grayscale(0);transform:scale(1.15);box-shadow:0 0 10px #ff0}
+.calc-item.active{border-color:#ff0}
+.calc-total-box{background:#2a2a2a;border:2px solid #ff0;border-radius:8px;padding:20px;text-align:center}
+.calc-total-box h3{font-size:24px;margin-bottom:10px}
+#calc-total-output{font-size:42px;font-weight:700;color:#ff0;min-height:50px}
 </style>
 </head>
 <body>
+
 <div class="background-bubble"></div>
-<h1>Brainrot Values</h1>
-<div class="controls">
-<input type="text" id="searchBar" placeholder="Search...">
-<div class="filter-container">
-<button id="filterBtn"></button>
-<div id="filterDropdown" class="filter-dropdown">
-<div class="filter-option" data-sort="name">Sort by Name</div>
-<div class="filter-option" data-sort="value">Sort by Value</div>
-<div class="filter-option" data-sort="second">Sort by Second</div>
-<div class="filter-option" data-sort="demand">Sort by Demand</div>
-<div class="filter-option" data-sort="rarity">Sort by Rarity</div>
-</div>
-</div>
-</div>
-<div class="brainrot-grid" id="brainrotGrid"></div>
 <button class="admin-btn" id="adminBtn">⚙</button>
+
+<nav>
+    <div class="nav-link active" id="nav-main">Brainrot Values</div>
+    <div class="nav-link" id="nav-calculator">Second Calculator</div>
+</nav>
+
+<div class="page" id="page-main">
+    <h1>Brainrot Values</h1>
+    <div class="controls">
+        <input type="text" id="searchBar" placeholder="Search...">
+        <div class="filter-container">
+            <button id="filterBtn"></button>
+            <div id="filterDropdown" class="filter-dropdown">
+                <div class="filter-option" data-sort="name">Sort by Name</div>
+                <div class="filter-option" data-sort="value">Sort by Value</div>
+                <div class="filter-option" data-sort="second">Sort by Second</div>
+                <div class="filter-option" data-sort="demand">Sort by Demand</div>
+                <div class="filter-option" data-sort="rarity">Sort by Rarity</div>
+            </div>
+        </div>
+    </div>
+    <div class="brainrot-grid" id="brainrotGrid"></div>
+</div>
+
+<div class="page" id="page-calculator">
+    <h2>Second Calculator</h2>
+    <div class="calculator-layout">
+        <div class="calc-left">
+            <h3>Select Brainrot</h3>
+            <select id="calc-brainrot-select">
+                <option value="">Select a brainrot...</option>
+            </select>
+            <div id="calc-selected-brainrot">
+                </div>
+        </div>
+        <div class="calc-right">
+            <div class="calc-total-box">
+                <h3>Total Per Second</h3>
+                <div id="calc-total-output">0</div>
+            </div>
+            
+            <div class="calc-box">
+                <h3>Traits</h3>
+                <div class="calc-item-grid" id="calc-traits-grid">
+                    </div>
+            </div>
+            
+            <div class="calc-box">
+                <h3>Mutations</h3>
+                <div class="calc-item-grid" id="calc-mutations-grid">
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal" id="passwordModal">
 <div class="modal-content">
 <h2>Admin Login</h2>
@@ -133,10 +218,56 @@ const db=firebase.database();
 let brainrots=[],currentSort='name',isAdmin=false;
 const rarityOrder={Common:1,Rare:2,Epic:3,Legendary:4,Mythic:5,God:6,Secret:7,OG:8};
 const demandOrder={Low:1,Average:2,High:3};
-function loadBrainrots(){db.ref('brainrots').on('value',s=>{brainrots=[];const d=s.val();if(d)Object.keys(d).forEach(k=>brainrots.push(d[k]));renderBrainrots();updateDeleteDropdown();updateEditDropdown()})}
+
+// --- New Calculator Data ---
+const traitsData = [
+    { img: 'GraveYard-RIP-Tombstone.webp', multiplier: 5 },
+    { img: 'ICON_Meowl.webp', multiplier: 7 },
+    { img: 'Witchhat.webp', multiplier: 4.5 },
+    { img: 'Wet.webp', multiplier: 2.5 },
+    { img: 'Snowy.webp', multiplier: 3 },
+    { img: 'Cometstruck.webp', multiplier: 3.5 },
+    { img: 'MatteoHat.webp', multiplier: 4.5 },
+    { img: 'Shark_Fin.webp', multiplier: 4 },
+    { img: 'Comet2.webp', multiplier: 4 },
+    { img: 'Bombardiro.webp', multiplier: 4 },
+    { img: 'Extincty.webp', multiplier: 4 },
+    { img: 'Spider.webp', multiplier: 4.5 },
+    { img: 'Chicleteirabicicleteira.webp', multiplier: 6 },
+    { img: 'Tie.webp', multiplier: 4.75 },
+    { img: 'Strawberry.webp', multiplier: 8 },
+    { img: 'Taco.webp', multiplier: 3 },
+    { img: 'EvilTungTungSahur.webp', multiplier: 5 },
+    { img: 'CrabClaw.webp', multiplier: 5 },
+    { img: 'Disco.webp', multiplier: 5 },
+    { img: 'Mexico_Hat.webp', multiplier: 5 },
+    { img: 'Glitch.webp', multiplier: 5 },
+    { img: 'Fire.webp', multiplier: 6 },
+    { img: 'Fireworks.webp', multiplier: 6 },
+    { img: 'Nyan.webp', multiplier: 6 },
+    { img: '10b.webp', multiplier: 4 },
+    { img: 'Bloodmoon.webp', multiplier: 2 },
+    { img: 'Brazil.webp', multiplier: 6 },
+    { img: 'Bubblegum.webp', multiplier: 4 },
+    { img: 'Rainbowmachine.webp', multiplier: 10 },
+    { img: 'Alienevent.webp', multiplier: 3 }
+];
+const mutationsData = [
+    { img: 'Gold3.webp', multiplier: 1.25 },
+    { img: 'Diamond3.webp', multiplier: 1.5 },
+    { img: 'Rainbow2.webp', multiplier: 10 },
+    { img: 'Bloodrot.webp', multiplier: 2 },
+    { img: 'Candy2.webp', multiplier: 4 },
+    { img: 'Lava2.webp', multiplier: 6 },
+    { img: 'Galaxy2.webp', multiplier: 7 },
+    { img: 'Yingyangicon.webp', multiplier: 7.5 }
+];
+
+// --- Main App Functions (Modified) ---
+function loadBrainrots(){db.ref('brainrots').on('value',s=>{brainrots=[];const d=s.val();if(d)Object.keys(d).forEach(k=>brainrots.push(d[k]));renderBrainrots();updateDeleteDropdown();updateEditDropdown();populateCalculatorSelect()})}
 function saveBrainrot(b){const k=b.name.replace(/[^a-zA-Z0-9]/g,'-').toLowerCase();return db.ref(`brainrots/${k}`).set(b).then(()=>true).catch(e=>{alert('Error: '+e.message);return false})}
 function deleteBrainrot(n){const k=n.replace(/[^a-zA-Z0-9]/g,'-').toLowerCase();return db.ref(`brainrots/${k}`).remove().then(()=>true).catch(()=>false)}
-function parseValue(v){const n=parseFloat(v);if(v.includes('M'))return n*1e6;if(v.includes('K'))return n*1e3;if(v.includes('B'))return n*1e9;return n}
+function parseValue(v){if(typeof v!=='string')return Number(v)||0;const n=parseFloat(v);if(v.includes('M'))return n*1e6;if(v.includes('K'))return n*1e3;if(v.includes('B'))return n*1e9;return n}
 function renderBrainrots(){const g=document.getElementById('brainrotGrid'),st=document.getElementById('searchBar').value.toLowerCase();let f=brainrots.filter(b=>b.name.toLowerCase().includes(st));f.sort((a,b)=>{if(currentSort==='name')return a.name.localeCompare(b.name);if(currentSort==='value')return parseValue(b.value)-parseValue(a.value);if(currentSort==='second')return parseValue(b.second||'0')-parseValue(a.second||'0');if(currentSort==='demand')return demandOrder[b.demand]-demandOrder[a.demand];if(currentSort==='rarity')return rarityOrder[b.rarity]-rarityOrder[a.rarity];return 0});g.innerHTML=f.map(b=>`<div class="brainrot-card"><div class="brainrot-image"><img src="images/${b.image}" alt="${b.name}" onerror="this.style.display='none'"></div><div class="brainrot-name rarity-${b.rarity.toLowerCase()}">${b.name}</div><div class="brainrot-info">Value: <span class="value-text">${b.value}</span></div><div class="brainrot-info">Second: <span class="second-text">${b.second||'N/A'}</span></div><div class="brainrot-info">Demand: <span class="demand-${b.demand.toLowerCase()}">${b.demand}</span></div><div class="brainrot-info">Rarity: <span class="rarity-${b.rarity.toLowerCase()}">${b.rarity}</span></div></div>`).join('')}
 document.getElementById('searchBar').addEventListener('input',renderBrainrots);
 document.getElementById('filterBtn').addEventListener('click',()=>document.getElementById('filterDropdown').classList.toggle('show'));
@@ -148,14 +279,135 @@ document.getElementById('cancelLoginBtn').addEventListener('click',()=>{document
 function openAdminPanel(){updateDeleteDropdown();updateEditDropdown();document.getElementById('adminModal').classList.add('show')}
 document.getElementById('closeAdminBtn').addEventListener('click',()=>{document.getElementById('adminModal').classList.remove('show');clearForm()});
 document.getElementById('saveBrainrotBtn').addEventListener('click',()=>{const n=document.getElementById('brainrotName').value,i=document.getElementById('brainrotImage').value,v=document.getElementById('brainrotValue').value,s=document.getElementById('brainrotSecond').value,d=document.getElementById('brainrotDemand').value,r=document.getElementById('brainrotRarity').value;if(!n||!i||!v){alert('Please fill out all required fields!');return}saveBrainrot({name:n,image:i,value:v,second:s,demand:d,rarity:r}).then(x=>{if(x){updateDeleteDropdown();updateEditDropdown();clearForm();alert('Brainrot added successfully!')}})});
-function updateDeleteDropdown(){document.getElementById('deleteBrainrotSelect').innerHTML='<option value="">Select a brainrot to delete...</option>'+brainrots.map((b,i)=>`<option value="${i}">${b.name}</option>`).join('')}
-function updateEditDropdown(){document.getElementById('editBrainrotSelect').innerHTML='<option value="">Select a brainrot to edit...</option>'+brainrots.map((b,i)=>`<option value="${i}">${b.name}</option>`).join('')}
+function updateDeleteDropdown(){document.getElementById('deleteBrainrotSelect').innerHTML='<option value="">Select a brainrot to delete...</option>'+brainrots.map((b,i)=>`<option value="${b.name}">${b.name}</option>`).join('')}
+function updateEditDropdown(){document.getElementById('editBrainrotSelect').innerHTML='<option value="">Select a brainrot to edit...</option>'+brainrots.map((b,i)=>`<option value="${b.name}">${b.name}</option>`).join('')}
 document.getElementById('editBrainrotSelect').addEventListener('change',()=>{const f=document.getElementById('editFieldSelect').value;if(f){document.getElementById('editFieldSelect').dispatchEvent(new Event('change'))}else{document.getElementById('editFieldInput').innerHTML=''}});
-document.getElementById('editFieldSelect').addEventListener('change',e=>{const bi=document.getElementById('editBrainrotSelect').value,f=e.target.value,ic=document.getElementById('editFieldInput');if(!bi||!f){ic.innerHTML='';return}const b=brainrots[bi];if(f==='demand')ic.innerHTML=`<select id="editValue" style="width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-top:10px"><option value="Low"${b.demand==='Low'?' selected':''}>Low</option><option value="Average"${b.demand==='Average'?' selected':''}>Average</option><option value="High"${b.demand==='High'?' selected':''}>High</option></select>`;else if(f==='rarity')ic.innerHTML=`<select id="editValue" style="width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-top:10px"><option value="Common"${b.rarity==='Common'?' selected':''}>Common</option><option value="Rare"${b.rarity==='Rare'?' selected':''}>Rare</option><option value="Epic"${b.rarity==='Epic'?' selected':''}>Epic</option><option value="Legendary"${b.rarity==='Legendary'?' selected':''}>Legendary</option><option value="Mythic"${b.rarity==='Mythic'?' selected':''}>Mythic</option><option value="God"${b.rarity==='God'?' selected':''}>God</option><option value="Secret"${b.rarity==='Secret'?' selected':''}>Secret</option><option value="OG"${b.rarity==='OG'?' selected':''}>OG</option></select>`;else ic.innerHTML=`<input type="text" id="editValue" value="${b[f]||''}" placeholder="Enter new ${f}" style="width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-top:10px">`});
-document.getElementById('saveEditBtn').addEventListener('click',()=>{const bi=document.getElementById('editBrainrotSelect').value,f=document.getElementById('editFieldSelect').value,ev=document.getElementById('editValue');if(!bi||!f||!ev){alert('Please select a brainrot and field to edit!');return}const nv=ev.value,br={...brainrots[bi]},on=br.name;br[f]=nv;if(f==='name')deleteBrainrot(on).then(()=>saveBrainrot(br).then(s=>{if(s){document.getElementById('editBrainrotSelect').value='';document.getElementById('editFieldInput').innerHTML='';alert('Brainrot edited successfully!')}}));else saveBrainrot(br).then(s=>{if(s){document.getElementById('editBrainrotSelect').value='';document.getElementById('editFieldInput').innerHTML='';alert('Brainrot edited successfully!')}})});
-document.getElementById('deleteBrainrotBtn').addEventListener('click',()=>{const i=document.getElementById('deleteBrainrotSelect').value;if(i===''){alert('Please select a brainrot to delete!');return}const bd=brainrots[i];if(confirm(`Are you sure you want to delete "${bd.name}"?`))deleteBrainrot(bd.name).then(s=>{if(s){updateDeleteDropdown();alert('Brainrot deleted successfully!')}else alert('Error deleting brainrot.')})});
+document.getElementById('editFieldSelect').addEventListener('change',e=>{const bn=document.getElementById('editBrainrotSelect').value,f=e.target.value,ic=document.getElementById('editFieldInput');if(!bn||!f){ic.innerHTML='';return}const b=brainrots.find(br=>br.name===bn);if(!b){ic.innerHTML='';return}if(f==='demand')ic.innerHTML=`<select id="editValue" style="width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-top:10px"><option value="Low"${b.demand==='Low'?' selected':''}>Low</option><option value="Average"${b.demand==='Average'?' selected':''}>Average</option><option value="High"${b.demand==='High'?' selected':''}>High</option></select>`;else if(f==='rarity')ic.innerHTML=`<select id="editValue" style="width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-top:10px"><option value="Common"${b.rarity==='Common'?' selected':''}>Common</option><option value="Rare"${b.rarity==='Rare'?' selected':''}>Rare</option><option value="Epic"${b.rarity==='Epic'?' selected':''}>Epic</option><option value="Legendary"${b.rarity==='Legendary'?' selected':''}>Legendary</option><option value="Mythic"${b.rarity==='Mythic'?' selected':''}>Mythic</option><option value="God"${b.rarity==='God'?' selected':''}>God</option><option value="Secret"${b.rarity==='Secret'?' selected':''}>Secret</option><option value="OG"${b.rarity==='OG'?' selected':''}>OG</option></select>`;else ic.innerHTML=`<input type="text" id="editValue" value="${b[f]||''}" placeholder="Enter new ${f}" style="width:100%;padding:10px;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:5px;margin-top:10px">`});
+document.getElementById('saveEditBtn').addEventListener('click',()=>{const bn=document.getElementById('editBrainrotSelect').value,f=document.getElementById('editFieldSelect').value,ev=document.getElementById('editValue');if(!bn||!f||!ev){alert('Please select a brainrot and field to edit!');return}const nv=ev.value;const b=brainrots.find(br=>br.name===bn);if(!b)return;const br={...b},on=br.name;br[f]=nv;if(f==='name')deleteBrainrot(on).then(()=>saveBrainrot(br).then(s=>{if(s){document.getElementById('editBrainrotSelect').value='';document.getElementById('editFieldInput').innerHTML='';alert('Brainrot edited successfully!')}}));else saveBrainrot(br).then(s=>{if(s){document.getElementById('editBrainrotSelect').value='';document.getElementById('editFieldInput').innerHTML='';alert('Brainrot edited successfully!')}})});
+document.getElementById('deleteBrainrotBtn').addEventListener('click',()=>{const i=document.getElementById('deleteBrainrotSelect').value;if(i===''){alert('Please select a brainrot to delete!');return}const bd=brainrots.find(br=>br.name===i);if(!bd){alert('Error finding brainrot.');return}if(confirm(`Are you sure you want to delete "${bd.name}"?`))deleteBrainrot(bd.name).then(s=>{if(s){updateDeleteDropdown();alert('Brainrot deleted successfully!')}else alert('Error deleting brainrot.')})});
 function clearForm(){document.getElementById('brainrotName').value='';document.getElementById('brainrotImage').value='';document.getElementById('brainrotValue').value='';document.getElementById('brainrotSecond').value='';document.getElementById('brainrotDemand').value='Low';document.getElementById('brainrotRarity').value='Common'}
-renderBrainrots();loadBrainrots();
+
+// --- New Page Navigation ---
+const navMain = document.getElementById('nav-main');
+const navCalc = document.getElementById('nav-calculator');
+const pageMain = document.getElementById('page-main');
+const pageCalc = document.getElementById('page-calculator');
+
+navMain.addEventListener('click', () => {
+    pageMain.style.display = 'block';
+    pageCalc.style.display = 'none';
+    navMain.classList.add('active');
+    navCalc.classList.remove('active');
+});
+navCalc.addEventListener('click', () => {
+    pageMain.style.display = 'none';
+    pageCalc.style.display = 'block';
+    navMain.classList.remove('active');
+    navCalc.classList.add('active');
+});
+
+// --- New Calculator Functions ---
+const calcBrainrotSelect = document.getElementById('calc-brainrot-select');
+const calcSelectedContainer = document.getElementById('calc-selected-brainrot');
+const calcTraitsGrid = document.getElementById('calc-traits-grid');
+const calcMutationsGrid = document.getElementById('calc-mutations-grid');
+const calcTotalOutput = document.getElementById('calc-total-output');
+
+function populateCalculatorSelect() {
+    // Sort brainrots by name for the dropdown
+    const sortedBrainrots = [...brainrots].sort((a, b) => a.name.localeCompare(b.name));
+    calcBrainrotSelect.innerHTML = '<option value="">Select a brainrot...</option>' +
+        sortedBrainrots.map((b, i) => `<option value="${b.name}">${b.name}</option>`).join('');
+}
+
+function populateCalcItems() {
+    calcTraitsGrid.innerHTML = traitsData.map(item => `
+        <div class="calc-item" data-multiplier="${item.multiplier}">
+            <img src="traits+mutations/${item.img}" alt="${item.img.split('.')[0]}">
+        </div>
+    `).join('');
+    
+    calcMutationsGrid.innerHTML = mutationsData.map(item => `
+        <div class="calc-item" data-multiplier="${item.multiplier}">
+            <img src="traits+mutations/${item.img}" alt="${item.img.split('.')[0]}">
+        </div>
+    `).join('');
+    
+    // Add click listeners to items
+    document.querySelectorAll('.calc-item').forEach(item => {
+        item.addEventListener('click', () => {
+            item.classList.toggle('active');
+            calculateTotal();
+        });
+    });
+}
+
+function formatValue(num) {
+    if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+    return num.toLocaleString(); // Use toLocaleString for nice commas
+}
+
+function calculateTotal() {
+    const selectedName = calcBrainrotSelect.value;
+    let basePerSecond = 0;
+    
+    if (selectedName) {
+        const selectedBrainrot = brainrots.find(b => b.name === selectedName);
+        if (selectedBrainrot) {
+            basePerSecond = parseValue(selectedBrainrot.second || '0');
+        }
+    }
+    
+    let totalMultiplier = 1;
+    
+    document.querySelectorAll('#calc-traits-grid .calc-item.active').forEach(item => {
+        totalMultiplier *= parseFloat(item.dataset.multiplier);
+    });
+    
+    document.querySelectorAll('#calc-mutations-grid .calc-item.active').forEach(item => {
+        totalMultiplier *= parseFloat(item.dataset.multiplier);
+    });
+    
+    const finalTotal = basePerSecond * totalMultiplier;
+    
+    // Update total display
+    calcTotalOutput.textContent = formatValue(finalTotal);
+}
+
+calcBrainrotSelect.addEventListener('change', () => {
+    const selectedName = calcBrainrotSelect.value;
+    if (!selectedName) {
+        calcSelectedContainer.innerHTML = '';
+        calculateTotal(); // Recalculate (will be 0)
+        return;
+    }
+    
+    const selectedBrainrot = brainrots.find(b => b.name === selectedName);
+    if (selectedBrainrot) {
+        // Build the card HTML
+        calcSelectedContainer.innerHTML = `
+            <div class="brainrot-card">
+                <div class="brainrot-image">
+                    <img src="images/${selectedBrainrot.image}" alt="${selectedBrainrot.name}" onerror="this.style.display='none'">
+                </div>
+                <div class="brainrot-name rarity-${selectedBrainrot.rarity.toLowerCase()}">${selectedBrainrot.name}</div>
+                <div class="brainrot-info">Base Second: <span class="second-text">${selectedBrainrot.second || 'N/A'}</span></div>
+            </div>
+        `;
+    } else {
+        calcSelectedContainer.innerHTML = '';
+    }
+    
+    calculateTotal(); // Recalculate when selection changes
+});
+
+// --- Initial Load ---
+renderBrainrots();
+loadBrainrots();
+populateCalcItems(); // Populate trait/mutation grids on load
 </script>
 </body>
 </html>
+```
