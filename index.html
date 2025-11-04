@@ -210,7 +210,8 @@ h1{font-size:48px;margin-bottom:30px;text-align:center}
 const cfg={apiKey:"AIzaSyCkynWoOIhS3Vlh7RmY1kStGrz0h3TOg_g",authDomain:"brainrot-values.firebaseapp.com",databaseURL:"https://brainrot-values-default-rtdb.europe-west1.firebasedatabase.app",projectId:"brainrot-values",storageBucket:"brainrot-values.appspot.com",messagingSenderId:"395140547817",appId:"1:395140547817:web:a9f16c95f25c16d30c9c78"};
 firebase.initializeApp(cfg);
 const db=firebase.database();
-let brainrots=[],currentSort='name',isAdmin=false;
+// --- CHANGE 2: Default sort changed from 'name' to 'value' ---
+let brainrots=[],currentSort='value',isAdmin=false;
 const rarityOrder={Common:1,Rare:2,Epic:3,Legendary:4,Mythic:5,God:6,Secret:7,OG:8};
 const demandOrder={Low:1,Average:2,High:3};
 
@@ -341,9 +342,11 @@ function formatValue(num) {
     if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
     if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
     if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
-    return num.toLocaleString(); // Use toLocaleString for nice commas
+    // Use toLocaleString for nice commas and handle decimals
+    return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
+// --- CHANGE 1: Updated calculation logic ---
 function calculateTotal() {
     const selectedName = calcBrainrotSelect.value;
     let basePerSecond = 0;
@@ -355,17 +358,22 @@ function calculateTotal() {
         }
     }
     
-    let totalMultiplier = 1;
+    let totalMultiplierSum = 0; // Start with 0 for addition
     
     document.querySelectorAll('#calc-traits-grid .calc-item.active').forEach(item => {
-        totalMultiplier *= parseFloat(item.dataset.multiplier);
+        totalMultiplierSum += parseFloat(item.dataset.multiplier);
     });
     
     document.querySelectorAll('#calc-mutations-grid .calc-item.active').forEach(item => {
-        totalMultiplier *= parseFloat(item.dataset.multiplier);
+        totalMultiplierSum += parseFloat(item.dataset.multiplier);
     });
     
-    const finalTotal = basePerSecond * totalMultiplier;
+    let finalTotal;
+    if (totalMultiplierSum === 0) {
+        finalTotal = basePerSecond; // If no multipliers, just use the base
+    } else {
+        finalTotal = basePerSecond * totalMultiplierSum; // Use the sum as the multiplier
+    }
     
     // Update total display
     calcTotalOutput.textContent = formatValue(finalTotal);
